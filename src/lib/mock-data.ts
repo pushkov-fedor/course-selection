@@ -1,226 +1,288 @@
 // src/lib/mock-data.ts
-import { Course, Department, Student } from "@/types";
+import { Course, CourseBlock, DayOfWeek } from "@/types";
 
-export const departments: Department[] = [
-  { id: "1", name: "Факультет информационных технологий", shortName: "ФИТ" },
-  { id: "2", name: "Факультет математики", shortName: "ФМ" },
-  { id: "3", name: "Факультет физики", shortName: "ФФ" },
-  { id: "4", name: "Факультет экономики", shortName: "ФЭ" },
-  { id: "5", name: "Факультет гуманитарных наук", shortName: "ФГН" },
+export const courseBlocks: CourseBlock[] = [
+  {
+    id: "block-ml",
+    name: "Машинное обучение",
+    description: "Выберите один курс по машинному обучению",
+    color: "blue",
+    required: true,
+  },
+  {
+    id: "block-dev",
+    name: "Разработка",
+    description: "Курсы по разработке ПО",
+    color: "emerald",
+    required: true,
+  },
+  {
+    id: "block-math",
+    name: "Математика",
+    description: "Углублённые курсы по математике",
+    color: "violet",
+    required: false,
+  },
+  {
+    id: "block-soft",
+    name: "Soft Skills",
+    description: "Дополнительные навыки",
+    color: "amber",
+    required: false,
+  },
 ];
 
 export const mockCourses: Course[] = [
+  // Блок ML
   {
-    id: "1",
-    title: "Машинное обучение",
-    description: "Курс охватывает основные алгоритмы машинного обучения: линейная регрессия, классификация, кластеризация, нейронные сети. Практические задания на Python с использованием scikit-learn и PyTorch.",
+    id: "ml-basics",
+    title: "Основы машинного обучения",
+    shortTitle: "ML Basics",
+    description: "Введение в ML: регрессия, классификация, кластеризация",
     instructor: "Иванов А.С.",
-    department: "Факультет информационных технологий",
+    blockId: "block-ml",
     credits: 4,
     maxStudents: 30,
-    enrolledStudents: 28,
+    enrolledStudents: 25,
     schedule: {
-      dayOfWeek: ["Вторник", "Четверг"],
-      startTime: "10:00",
-      endTime: "11:30",
-      room: "305",
-      building: "Главный корпус",
+      startDate: "2026-02-10",
+      endDate: "2026-04-20",
+      slots: [
+        { dayOfWeek: 1 as DayOfWeek, startTime: "10:00", endTime: "11:30", room: "305" },
+        { dayOfWeek: 3 as DayOfWeek, startTime: "10:00", endTime: "11:30", room: "305" },
+      ],
     },
     semester: "Весна 2026",
     status: "open",
-    prerequisites: ["Линейная алгебра", "Теория вероятностей", "Python"],
-    tags: ["AI", "Data Science", "Python"],
-    createdAt: "2025-12-01T10:00:00Z",
-    updatedAt: "2026-01-10T14:30:00Z",
   },
   {
-    id: "2",
-    title: "Распределённые системы",
-    description: "Проектирование и разработка распределённых систем. CAP-теорема, консенсус, репликация данных, микросервисная архитектура, Kubernetes.",
-    instructor: "Петров В.М.",
-    department: "Факультет информационных технологий",
-    credits: 3,
+    id: "ml-deep",
+    title: "Глубокое обучение",
+    shortTitle: "Deep Learning",
+    description: "Нейронные сети, CNN, RNN, трансформеры",
+    instructor: "Иванов А.С.",
+    blockId: "block-ml",
+    credits: 4,
     maxStudents: 25,
     enrolledStudents: 25,
     schedule: {
-      dayOfWeek: ["Понедельник", "Среда"],
-      startTime: "14:00",
-      endTime: "15:30",
-      room: "401",
-      building: "Корпус Б",
+      startDate: "2026-02-10",
+      endDate: "2026-05-15",
+      slots: [
+        { dayOfWeek: 2 as DayOfWeek, startTime: "14:00", endTime: "15:30", room: "401" },
+        { dayOfWeek: 4 as DayOfWeek, startTime: "14:00", endTime: "15:30", room: "401" },
+      ],
     },
     semester: "Весна 2026",
     status: "full",
-    prerequisites: ["Операционные системы", "Компьютерные сети"],
-    tags: ["Backend", "DevOps", "Архитектура"],
-    createdAt: "2025-11-15T09:00:00Z",
-    updatedAt: "2026-01-08T11:00:00Z",
   },
   {
-    id: "3",
-    title: "Функциональный анализ",
-    description: "Метрические и нормированные пространства, банаховы и гильбертовы пространства, линейные операторы, спектральная теория.",
-    instructor: "Сидорова Е.П.",
-    department: "Факультет математики",
-    credits: 5,
+    id: "ml-nlp",
+    title: "Обработка естественного языка",
+    shortTitle: "NLP",
+    description: "NLP, текстовая аналитика, LLM",
+    instructor: "Петрова М.К.",
+    blockId: "block-ml",
+    credits: 3,
     maxStudents: 20,
     enrolledStudents: 12,
     schedule: {
-      dayOfWeek: ["Вторник", "Пятница"],
-      startTime: "09:00",
-      endTime: "10:30",
-      room: "210",
-      building: "Математический корпус",
+      startDate: "2026-03-01",
+      endDate: "2026-05-01",
+      slots: [
+        { dayOfWeek: 5 as DayOfWeek, startTime: "09:00", endTime: "11:30", room: "210" },
+      ],
     },
     semester: "Весна 2026",
     status: "open",
-    prerequisites: ["Математический анализ", "Линейная алгебра"],
-    tags: ["Математика", "Теория"],
-    createdAt: "2025-12-05T08:00:00Z",
-    updatedAt: "2026-01-05T16:00:00Z",
   },
+  
+  // Блок Dev
   {
-    id: "4",
-    title: "Квантовая механика",
-    description: "Основы квантовой механики: волновая функция, уравнение Шрёдингера, операторы физических величин, атом водорода.",
-    instructor: "Козлов Д.А.",
-    department: "Факультет физики",
+    id: "dev-backend",
+    title: "Backend-разработка",
+    shortTitle: "Backend",
+    description: "Go, микросервисы, базы данных",
+    instructor: "Сидоров П.В.",
+    blockId: "block-dev",
     credits: 4,
-    maxStudents: 35,
-    enrolledStudents: 22,
-    schedule: {
-      dayOfWeek: ["Среда", "Пятница"],
-      startTime: "11:00",
-      endTime: "12:30",
-      room: "105",
-      building: "Физический корпус",
-    },
-    semester: "Весна 2026",
-    status: "open",
-    prerequisites: ["Общая физика", "Дифференциальные уравнения"],
-    tags: ["Физика", "Теория"],
-    createdAt: "2025-11-20T10:00:00Z",
-    updatedAt: "2026-01-07T09:00:00Z",
-  },
-  {
-    id: "5",
-    title: "UX/UI Дизайн",
-    description: "Принципы проектирования пользовательских интерфейсов, исследование пользователей, прототипирование в Figma, дизайн-системы.",
-    instructor: "Морозова А.В.",
-    department: "Факультет информационных технологий",
-    credits: 3,
-    maxStudents: 20,
+    maxStudents: 25,
     enrolledStudents: 18,
     schedule: {
-      dayOfWeek: ["Четверг"],
-      startTime: "16:00",
-      endTime: "18:30",
-      room: "502",
-      building: "Дизайн-центр",
+      startDate: "2026-02-10",
+      endDate: "2026-05-20",
+      slots: [
+        { dayOfWeek: 1 as DayOfWeek, startTime: "14:00", endTime: "15:30", room: "502" },
+        { dayOfWeek: 4 as DayOfWeek, startTime: "14:00", endTime: "15:30", room: "502" },
+      ],
     },
     semester: "Весна 2026",
     status: "open",
-    prerequisites: [],
-    tags: ["Дизайн", "UX", "UI"],
-    createdAt: "2025-12-10T14:00:00Z",
-    updatedAt: "2026-01-09T12:00:00Z",
   },
   {
-    id: "6",
-    title: "Эконометрика",
-    description: "Методы эконометрического анализа, регрессионный анализ, временные ряды, панельные данные. Практика в R и Stata.",
-    instructor: "Белова Н.К.",
-    department: "Факультет экономики",
+    id: "dev-frontend",
+    title: "Frontend-разработка",
+    shortTitle: "Frontend",
+    description: "React, TypeScript, Next.js",
+    instructor: "Козлова А.И.",
+    blockId: "block-dev",
     credits: 4,
-    maxStudents: 40,
-    enrolledStudents: 35,
+    maxStudents: 25,
+    enrolledStudents: 22,
     schedule: {
-      dayOfWeek: ["Понедельник", "Четверг"],
-      startTime: "12:00",
-      endTime: "13:30",
-      room: "301",
-      building: "Экономический корпус",
+      startDate: "2026-02-15",
+      endDate: "2026-05-10",
+      slots: [
+        { dayOfWeek: 2 as DayOfWeek, startTime: "10:00", endTime: "11:30", room: "305" },
+        { dayOfWeek: 5 as DayOfWeek, startTime: "10:00", endTime: "11:30", room: "305" },
+      ],
     },
     semester: "Весна 2026",
     status: "open",
-    prerequisites: ["Статистика", "Микроэкономика"],
-    tags: ["Экономика", "Статистика", "R"],
-    createdAt: "2025-11-25T11:00:00Z",
-    updatedAt: "2026-01-06T15:00:00Z",
   },
   {
-    id: "7",
-    title: "Компьютерное зрение",
-    description: "Обработка изображений, детекция объектов, сегментация, генеративные модели. OpenCV, PyTorch, трансформеры в CV.",
-    instructor: "Иванов А.С.",
-    department: "Факультет информационных технологий",
-    credits: 4,
+    id: "dev-mobile",
+    title: "Мобильная разработка",
+    shortTitle: "Mobile",
+    description: "Flutter, React Native, кроссплатформенность",
+    instructor: "Новиков Д.С.",
+    blockId: "block-dev",
+    credits: 3,
+    maxStudents: 20,
+    enrolledStudents: 15,
+    schedule: {
+      startDate: "2026-03-01",
+      endDate: "2026-04-30",
+      slots: [
+        { dayOfWeek: 3 as DayOfWeek, startTime: "16:00", endTime: "18:30", room: "401" },
+      ],
+    },
+    semester: "Весна 2026",
+    status: "open",
+  },
+  
+  // Блок Math
+  {
+    id: "math-stats",
+    title: "Математическая статистика",
+    shortTitle: "Статистика",
+    description: "Продвинутый курс статистики",
+    instructor: "Белова Н.К.",
+    blockId: "block-math",
+    credits: 3,
+    maxStudents: 30,
+    enrolledStudents: 20,
+    schedule: {
+      startDate: "2026-02-10",
+      endDate: "2026-04-10",
+      slots: [
+        { dayOfWeek: 1 as DayOfWeek, startTime: "09:00", endTime: "10:30", room: "210" },
+        { dayOfWeek: 3 as DayOfWeek, startTime: "09:00", endTime: "10:30", room: "210" },
+      ],
+    },
+    semester: "Весна 2026",
+    status: "open",
+  },
+  {
+    id: "math-optim",
+    title: "Методы оптимизации",
+    shortTitle: "Оптимизация",
+    description: "Выпуклая оптимизация, градиентные методы",
+    instructor: "Громов П.Л.",
+    blockId: "block-math",
+    credits: 3,
     maxStudents: 25,
     enrolledStudents: 10,
     schedule: {
-      dayOfWeek: ["Среда", "Пятница"],
-      startTime: "14:00",
-      endTime: "15:30",
-      room: "305",
-      building: "Главный корпус",
+      startDate: "2026-02-20",
+      endDate: "2026-05-01",
+      slots: [
+        { dayOfWeek: 4 as DayOfWeek, startTime: "10:00", endTime: "12:30", room: "110" },
+      ],
     },
     semester: "Весна 2026",
     status: "open",
-    prerequisites: ["Машинное обучение", "Линейная алгебра"],
-    tags: ["AI", "Computer Vision", "Python"],
-    createdAt: "2025-12-08T09:00:00Z",
-    updatedAt: "2026-01-11T10:00:00Z",
+  },
+  
+  // Блок Soft Skills
+  {
+    id: "soft-present",
+    title: "Публичные выступления",
+    shortTitle: "Презентации",
+    description: "Навыки презентации и коммуникации",
+    instructor: "Морозова А.В.",
+    blockId: "block-soft",
+    credits: 2,
+    maxStudents: 15,
+    enrolledStudents: 10,
+    schedule: {
+      startDate: "2026-02-10",
+      endDate: "2026-03-30",
+      slots: [
+        { dayOfWeek: 6 as DayOfWeek, startTime: "10:00", endTime: "12:30", room: "Конференц-зал" },
+      ],
+    },
+    semester: "Весна 2026",
+    status: "open",
   },
   {
-    id: "8",
-    title: "Философия науки",
-    description: "Методология научного познания, парадигмы и научные революции, современные философские концепции науки.",
-    instructor: "Громов П.Л.",
-    department: "Факультет гуманитарных наук",
+    id: "soft-pm",
+    title: "Основы управления проектами",
+    shortTitle: "PM",
+    description: "Agile, Scrum, планирование",
+    instructor: "Кузнецов И.М.",
+    blockId: "block-soft",
     credits: 2,
-    maxStudents: 50,
-    enrolledStudents: 30,
+    maxStudents: 20,
+    enrolledStudents: 18,
     schedule: {
-      dayOfWeek: ["Суббота"],
-      startTime: "10:00",
-      endTime: "12:30",
-      room: "201",
-      building: "Гуманитарный корпус",
+      startDate: "2026-03-15",
+      endDate: "2026-05-15",
+      slots: [
+        { dayOfWeek: 6 as DayOfWeek, startTime: "14:00", endTime: "16:30", room: "305" },
+      ],
     },
     semester: "Весна 2026",
     status: "open",
-    prerequisites: [],
-    tags: ["Философия", "Гуманитарные науки"],
-    createdAt: "2025-12-12T13:00:00Z",
-    updatedAt: "2026-01-04T17:00:00Z",
   },
 ];
 
-export const mockStudent: Student = {
-  id: "student-1",
-  firstName: "Алексей",
-  lastName: "Смирнов",
-  middleName: "Дмитриевич",
-  email: "a.smirnov@university.edu",
-  studentId: "2024-ФИТ-001",
-  department: "Факультет информационных технологий",
-  year: 3,
-  group: "ФИТ-31",
-};
-
-export function getCourseById(id: string): Course | undefined {
-  return mockCourses.find((course) => course.id === id);
+// Helpers
+export function getCoursesByBlock(blockId: string): Course[] {
+  return mockCourses.filter((course) => course.blockId === blockId);
 }
 
-export function getCoursesByDepartment(department: string): Course[] {
-  return mockCourses.filter((course) => course.department === department);
+export function getBlockById(blockId: string): CourseBlock | undefined {
+  return courseBlocks.find((block) => block.id === blockId);
 }
 
-export function getOpenCourses(): Course[] {
-  return mockCourses.filter((course) => course.status === "open");
+export function getCourseById(courseId: string): Course | undefined {
+  return mockCourses.find((course) => course.id === courseId);
 }
 
-export function getAvailableSpots(course: Course): number {
-  return course.maxStudents - course.enrolledStudents;
+// Получить даты семестра для timeline
+export function getSemesterDateRange(): { start: Date; end: Date } {
+  return {
+    start: new Date("2026-02-01"),
+    end: new Date("2026-06-01"),
+  };
 }
 
+// Получить все недели семестра
+export function getSemesterWeeks(): Date[] {
+  const { start, end } = getSemesterDateRange();
+  const weeks: Date[] = [];
+  const current = new Date(start);
+  
+  // Найти первый понедельник
+  while (current.getDay() !== 1) {
+    current.setDate(current.getDate() + 1);
+  }
+  
+  while (current <= end) {
+    weeks.push(new Date(current));
+    current.setDate(current.getDate() + 7);
+  }
+  
+  return weeks;
+}

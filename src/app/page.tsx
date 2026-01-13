@@ -1,138 +1,215 @@
 // src/app/page.tsx
-import Link from "next/link";
-import { Header } from "@/components/Header";
-import { CourseCard } from "@/components/CourseCard";
-import { Button } from "@/components/ui/button";
-import { mockCourses } from "@/lib/mock-data";
+"use client";
 
-export default function HomePage() {
-  // Показываем 4 популярных курса на главной
-  const featuredCourses = mockCourses.slice(0, 4);
+import { useState, useMemo } from "react";
+import { CourseTimeline } from "@/components/CourseTimeline";
+import { CourseTiles } from "@/components/CourseTiles";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { mockCourses, courseBlocks } from "@/lib/mock-data";
+import { Selection, ViewMode, BLOCK_COLORS } from "@/types";
+import { cn } from "@/lib/utils";
+
+export default function CoursesPage() {
+  const [viewMode, setViewMode] = useState<ViewMode>("tiles");
+  const [selections, setSelections] = useState<Selection[]>(
+    courseBlocks.map(block => ({ blockId: block.id, courseId: null }))
+  );
+
+  const handleSelectCourse = (blockId: string, courseId: string | null) => {
+    setSelections(prev => 
+      prev.map(s => s.blockId === blockId ? { ...s, courseId } : s)
+    );
+  };
+
+  const selectedCourses = useMemo(() => {
+    return selections
+      .filter(s => s.courseId !== null)
+      .map(s => mockCourses.find(c => c.id === s.courseId))
+      .filter(Boolean);
+  }, [selections]);
+
+  const totalCredits = useMemo(() => {
+    return selectedCourses.reduce((sum, course) => sum + (course?.credits || 0), 0);
+  }, [selectedCourses]);
+
+  const requiredBlocksSelected = useMemo(() => {
+    return courseBlocks
+      .filter(b => b.required)
+      .every(b => selections.find(s => s.blockId === b.id)?.courseId !== null);
+  }, [selections]);
 
   return (
-    <div className="min-h-screen bg-grid-pattern">
-      <Header />
-
-      {/* Hero Section */}
-      <section className="relative overflow-hidden border-b border-border/50">
-        {/* Background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-background" />
-        <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-primary/5 to-transparent" />
-        
-        <div className="container relative mx-auto px-4 py-24 md:py-32">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary ring-1 ring-primary/20 mb-6">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
-              </span>
-              Запись на весенний семестр 2026 открыта
-            </div>
-
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
-              Выбирай курсы,{" "}
-              <span className="text-gradient">развивайся</span>
-            </h1>
-
-            <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-2xl">
-              Платформа для записи на элективные курсы университета. 
-              Удобный выбор, прозрачные условия, быстрая запись.
-            </p>
-
-            <div className="mt-8 flex flex-wrap gap-4">
-              <Link href="/courses">
-                <Button size="lg" className="gap-2">
-                  Смотреть курсы
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                  </svg>
-                </Button>
-              </Link>
-              <Link href="/courses/create">
-                <Button size="lg" variant="outline">
-                  Создать курс
-                </Button>
-              </Link>
-            </div>
-
-            {/* Stats */}
-            <div className="mt-12 grid grid-cols-3 gap-8 max-w-md">
-              <div>
-                <div className="text-3xl font-bold text-primary">{mockCourses.length}</div>
-                <div className="text-sm text-muted-foreground">курсов</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-primary">5</div>
-                <div className="text-sm text-muted-foreground">факультетов</div>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-primary">180+</div>
-                <div className="text-sm text-muted-foreground">студентов</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Featured Courses */}
-      <section className="container mx-auto px-4 py-16">
-        <div className="flex items-end justify-between mb-8">
-          <div>
-            <h2 className="text-2xl md:text-3xl font-bold tracking-tight">
-              Популярные курсы
-            </h2>
-            <p className="mt-2 text-muted-foreground">
-              Курсы с наибольшим количеством записей
-            </p>
-          </div>
-          <Link href="/courses">
-            <Button variant="ghost" className="gap-2">
-              Все курсы
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </Button>
-          </Link>
-        </div>
-
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {featuredCourses.map((course) => (
-            <CourseCard key={course.id} course={course} />
-          ))}
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="border-t border-border/50">
-        <div className="container mx-auto px-4 py-16">
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/20 via-primary/10 to-background p-8 md:p-12 ring-1 ring-primary/20">
-            <div className="relative z-10 max-w-xl">
-              <h2 className="text-2xl md:text-3xl font-bold tracking-tight">
-                Преподаватель?
-              </h2>
-              <p className="mt-4 text-muted-foreground">
-                Создайте свой курс и начните набор студентов. 
-                Удобное управление записями и расписанием.
+    <div className="min-h-screen bg-slate-50">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-white border-b border-border shadow-sm">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-xl font-semibold text-foreground">
+                Запись на курсы
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Весенний семестр 2026
               </p>
-              <Link href="/courses/create" className="inline-block mt-6">
-                <Button size="lg" variant="secondary">
-                  Создать курс
-                </Button>
-              </Link>
             </div>
-            
-            {/* Decorative element */}
-            <div className="absolute -right-20 -bottom-20 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
+
+            {/* View toggle */}
+            <div className="flex items-center gap-2">
+              <div className="flex rounded-lg border border-border p-1 bg-muted/30">
+                <button
+                  onClick={() => setViewMode("tiles")}
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+                    viewMode === "tiles"
+                      ? "bg-white text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                  </svg>
+                  Плитки
+                </button>
+                <button
+                  onClick={() => setViewMode("timeline")}
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+                    viewMode === "timeline"
+                      ? "bg-white text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+                  </svg>
+                  Timeline
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-      </section>
+      </header>
 
-      {/* Footer */}
-      <footer className="border-t border-border/50 py-8">
-        <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>© 2026 UniCourses. Платформа записи на курсы университета.</p>
+      <div className="container mx-auto px-4 py-6">
+        <div className="flex gap-6">
+          {/* Main content */}
+          <div className="flex-1 min-w-0">
+            {viewMode === "tiles" ? (
+              <CourseTiles
+                courses={mockCourses}
+                blocks={courseBlocks}
+                selections={selections}
+                onSelectCourse={handleSelectCourse}
+              />
+            ) : (
+              <div className="bg-white rounded-lg border border-border overflow-hidden">
+                <CourseTimeline
+                  courses={mockCourses}
+                  blocks={courseBlocks}
+                  selections={selections}
+                  onSelectCourse={handleSelectCourse}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Selection sidebar */}
+          <aside className="w-80 shrink-0">
+            <div className="sticky top-24 bg-white rounded-lg border border-border p-4 space-y-4">
+              <div>
+                <h2 className="font-semibold text-lg">Выбранные курсы</h2>
+                <p className="text-sm text-muted-foreground">
+                  {selectedCourses.length} из {courseBlocks.length} блоков
+                </p>
+              </div>
+
+              {/* Selected courses list */}
+              <div className="space-y-2">
+                {courseBlocks.map(block => {
+                  const selection = selections.find(s => s.blockId === block.id);
+                  const course = selection?.courseId 
+                    ? mockCourses.find(c => c.id === selection.courseId)
+                    : null;
+                  const colors = BLOCK_COLORS[block.color];
+
+                  return (
+                    <div 
+                      key={block.id}
+                      className={cn(
+                        "p-3 rounded-lg border transition-colors",
+                        course ? colors.light : "border-dashed",
+                        course && colors.border
+                      )}
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className={cn(
+                          "w-2.5 h-2.5 rounded-full",
+                          course ? colors.bg : "bg-muted"
+                        )} />
+                        <span className="text-xs font-medium text-muted-foreground">
+                          {block.name}
+                        </span>
+                        {block.required && !course && (
+                          <span className="text-xs text-amber-600">*</span>
+                        )}
+                      </div>
+                      {course ? (
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <div className={cn("font-medium text-sm", colors.text)}>
+                              {course.shortTitle || course.title}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {course.credits} кр.
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => handleSelectCourse(block.id, null)}
+                            className="p-1 text-muted-foreground hover:text-destructive transition-colors"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="text-sm text-muted-foreground">
+                          Не выбран
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Summary */}
+              <div className="pt-4 border-t border-border space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Всего кредитов:</span>
+                  <span className="font-semibold">{totalCredits}</span>
+                </div>
+
+                {!requiredBlocksSelected && (
+                  <div className="flex items-start gap-2 p-2 bg-amber-50 rounded-lg text-xs text-amber-700">
+                    <svg className="w-4 h-4 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <span>Выберите курсы из всех обязательных блоков</span>
+                  </div>
+                )}
+
+                <Button 
+                  className="w-full"
+                  disabled={!requiredBlocksSelected}
+                >
+                  Подтвердить выбор
+                </Button>
+              </div>
+            </div>
+          </aside>
         </div>
-      </footer>
+      </div>
     </div>
   );
 }
