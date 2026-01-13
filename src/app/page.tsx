@@ -4,9 +4,10 @@
 import { useState, useMemo } from "react";
 import { SemesterCalendar } from "@/components/SemesterCalendar";
 import { CourseTiles } from "@/components/CourseTiles";
+import { CourseModal } from "@/components/CourseModal";
 import { Button } from "@/components/ui/button";
-import { mockCourses, courseBlocks } from "@/lib/mock-data";
-import { Selection, ViewMode, BLOCK_COLORS } from "@/types";
+import { mockCourses, courseBlocks, getBlockById } from "@/lib/mock-data";
+import { Selection, ViewMode, BLOCK_COLORS, Course } from "@/types";
 import { cn } from "@/lib/utils";
 
 export default function CoursesPage() {
@@ -14,11 +15,20 @@ export default function CoursesPage() {
   const [selections, setSelections] = useState<Selection[]>(
     courseBlocks.map(block => ({ blockId: block.id, courseId: null }))
   );
+  const [selectedCourseForModal, setSelectedCourseForModal] = useState<Course | null>(null);
 
   const handleSelectCourse = (blockId: string, courseId: string | null) => {
     setSelections(prev => 
       prev.map(s => s.blockId === blockId ? { ...s, courseId } : s)
     );
+  };
+
+  const handleOpenCourseModal = (course: Course) => {
+    setSelectedCourseForModal(course);
+  };
+
+  const handleCloseCourseModal = () => {
+    setSelectedCourseForModal(null);
   };
 
   const selectedCourses = useMemo(() => {
@@ -37,6 +47,15 @@ export default function CoursesPage() {
       .filter(b => b.required)
       .every(b => selections.find(s => s.blockId === b.id)?.courseId !== null);
   }, [selections]);
+
+  // For modal
+  const modalBlock = selectedCourseForModal ? getBlockById(selectedCourseForModal.blockId) : null;
+  const modalIsSelected = selectedCourseForModal 
+    ? selections.find(s => s.blockId === selectedCourseForModal.blockId)?.courseId === selectedCourseForModal.id
+    : false;
+  const modalIsDisabled = selectedCourseForModal
+    ? selections.find(s => s.blockId === selectedCourseForModal.blockId)?.courseId !== null && !modalIsSelected
+    : false;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -100,6 +119,7 @@ export default function CoursesPage() {
                 blocks={courseBlocks}
                 selections={selections}
                 onSelectCourse={handleSelectCourse}
+                onOpenCourse={handleOpenCourseModal}
               />
             ) : (
               <SemesterCalendar
@@ -107,6 +127,7 @@ export default function CoursesPage() {
                 blocks={courseBlocks}
                 selections={selections}
                 onSelectCourse={handleSelectCourse}
+                onOpenCourse={handleOpenCourseModal}
               />
             )}
           </div>
@@ -153,7 +174,10 @@ export default function CoursesPage() {
                       </div>
                       {course ? (
                         <div className="flex items-start justify-between gap-2">
-                          <div>
+                          <button
+                            onClick={() => handleOpenCourseModal(course)}
+                            className="text-left hover:underline"
+                          >
                             <div className={cn("font-medium text-sm", colors.text)}>
                               {course.shortTitle || course.title}
                             </div>
@@ -162,7 +186,7 @@ export default function CoursesPage() {
                                 `${["Вс","Пн","Вт","Ср","Чт","Пт","Сб"][s.dayOfWeek]} ${s.startTime}`
                               ).join(", ")}
                             </div>
-                          </div>
+                          </button>
                           <button
                             onClick={() => handleSelectCourse(block.id, null)}
                             className="p-1 text-muted-foreground hover:text-destructive transition-colors"
@@ -209,6 +233,23 @@ export default function CoursesPage() {
           </aside>
         </div>
       </div>
+
+      {/* Course Modal */}
+      <CourseModal
+        course={selectedCourseForModal}
+        block={modalBlock ?? null}
+        isSelected={modalIsSelected}
+        isDisabled={modalIsDisabled}
+        onClose={handleCloseCourseModal}
+        onSelect={() => {
+          if (selectedCourseForModal) {
+            handleSelectCourse(
+              selectedCourseForModal.blockId, 
+              modalIsSelected ? null : selectedCourseForModal.id
+            );
+          }
+        }}
+      />
     </div>
   );
 }

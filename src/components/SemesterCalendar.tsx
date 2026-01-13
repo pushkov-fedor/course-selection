@@ -12,6 +12,7 @@ interface SemesterCalendarProps {
   blocks: CourseBlock[];
   selections: Selection[];
   onSelectCourse: (blockId: string, courseId: string | null) => void;
+  onOpenCourse: (course: Course) => void;
 }
 
 type View = "semester" | "week";
@@ -20,7 +21,8 @@ export function SemesterCalendar({
   courses, 
   blocks, 
   selections, 
-  onSelectCourse 
+  onSelectCourse,
+  onOpenCourse,
 }: SemesterCalendarProps) {
   const weeks = useMemo(() => getSemesterWeeks(), []);
   const [view, setView] = useState<View>("semester");
@@ -63,6 +65,7 @@ export function SemesterCalendar({
           selectedWeekIndex={selectedWeekIndex}
           onSelectCourse={onSelectCourse}
           onWeekClick={handleWeekClick}
+          onOpenCourse={onOpenCourse}
           getSelectedCourseId={getSelectedCourseId}
         />
       ) : (
@@ -76,6 +79,7 @@ export function SemesterCalendar({
           onWeekChange={setSelectedWeekIndex}
           onBack={handleBackToSemester}
           onSelectCourse={onSelectCourse}
+          onOpenCourse={onOpenCourse}
           getSelectedCourseId={getSelectedCourseId}
         />
       )}
@@ -92,6 +96,7 @@ interface SemesterViewProps {
   selectedWeekIndex: number;
   onSelectCourse: (blockId: string, courseId: string | null) => void;
   onWeekClick: (index: number) => void;
+  onOpenCourse: (course: Course) => void;
   getSelectedCourseId: (blockId: string) => string | null;
 }
 
@@ -103,6 +108,7 @@ function SemesterView({
   selectedWeekIndex,
   onSelectCourse,
   onWeekClick,
+  onOpenCourse,
   getSelectedCourseId,
 }: SemesterViewProps) {
   const formatWeekDate = (date: Date) => {
@@ -141,7 +147,7 @@ function SemesterView({
         <div className="flex items-center justify-between">
           <h3 className="font-semibold">Семестр</h3>
           <p className="text-xs text-muted-foreground">
-            Нажмите на неделю для просмотра расписания →
+            Нажмите на курс для подробностей • На неделю для расписания
           </p>
         </div>
       </div>
@@ -211,27 +217,36 @@ function SemesterView({
                       key={course.id}
                       className={cn("flex border-t border-border/30", isDisabled && "opacity-30")}
                     >
-                      {/* Course info */}
+                      {/* Course info - clickable to open modal */}
                       <div className="w-44 shrink-0 px-3 py-2 border-r border-border">
-                        <button
-                          onClick={() => onSelectCourse(block.id, isSelected ? null : course.id)}
-                          disabled={isFull && !isSelected}
-                          className={cn(
-                            "w-full text-left flex items-start gap-2",
-                            isFull && !isSelected && "cursor-not-allowed"
-                          )}
-                        >
-                          <div className={cn(
-                            "mt-0.5 w-4 h-4 rounded border-2 shrink-0 flex items-center justify-center",
-                            isSelected ? `${colors.bg} border-transparent` : "border-muted-foreground/30"
-                          )}>
+                        <div className="flex items-start gap-2">
+                          {/* Checkbox */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (!isFull || isSelected) {
+                                onSelectCourse(block.id, isSelected ? null : course.id);
+                              }
+                            }}
+                            disabled={isDisabled || (isFull && !isSelected)}
+                            className={cn(
+                              "mt-0.5 w-4 h-4 rounded border-2 shrink-0 flex items-center justify-center transition-colors",
+                              isSelected ? `${colors.bg} border-transparent` : "border-muted-foreground/30 hover:border-primary/50",
+                              (isDisabled || (isFull && !isSelected)) && "cursor-not-allowed"
+                            )}
+                          >
                             {isSelected && (
                               <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                               </svg>
                             )}
-                          </div>
-                          <div className="flex-1 min-w-0">
+                          </button>
+                          
+                          {/* Course name - opens modal */}
+                          <button
+                            onClick={() => onOpenCourse(course)}
+                            className="flex-1 min-w-0 text-left hover:underline"
+                          >
                             <div className={cn("text-sm font-medium truncate", isSelected && colors.text)}>
                               {course.shortTitle || course.title}
                             </div>
@@ -239,8 +254,8 @@ function SemesterView({
                               {course.schedule.slots.map(s => DAY_NAMES[s.dayOfWeek]).join(", ")} • {course.credits}кр
                               {isFull && <span className="text-amber-600 ml-1">• мест нет</span>}
                             </div>
-                          </div>
-                        </button>
+                          </button>
+                        </div>
                       </div>
 
                       {/* Gantt bar */}
@@ -294,6 +309,7 @@ interface WeekViewProps {
   onWeekChange: (index: number) => void;
   onBack: () => void;
   onSelectCourse: (blockId: string, courseId: string | null) => void;
+  onOpenCourse: (course: Course) => void;
   getSelectedCourseId: (blockId: string) => string | null;
 }
 
@@ -307,6 +323,7 @@ function WeekView({
   onWeekChange,
   onBack,
   onSelectCourse,
+  onOpenCourse,
   getSelectedCourseId,
 }: WeekViewProps) {
   const weekEnd = new Date(weekStart);
@@ -392,6 +409,10 @@ function WeekView({
               </svg>
             </Button>
           </div>
+          
+          <p className="text-xs text-muted-foreground">
+            Нажмите на курс для подробностей
+          </p>
         </div>
       </div>
 
@@ -443,19 +464,13 @@ function WeekView({
                   return (
                     <button
                       key={idx}
-                      onClick={() => {
-                        if (!isFull || isSelected) {
-                          onSelectCourse(block.id, isSelected ? null : course.id);
-                        }
-                      }}
-                      disabled={isFull && !isSelected}
+                      onClick={() => onOpenCourse(course)}
                       className={cn(
-                        "absolute left-1 right-1 rounded px-2 py-1 overflow-hidden text-left transition-all",
+                        "absolute left-1 right-1 rounded px-2 py-1 overflow-hidden text-left transition-all hover:shadow-lg hover:z-10",
                         isSelected 
                           ? `${colors.bg} text-white shadow-md` 
-                          : `${colors.light} ${colors.text} border ${colors.border} hover:shadow-md`,
-                        isDisabled && "opacity-30 pointer-events-none",
-                        isFull && !isSelected && "cursor-not-allowed"
+                          : `${colors.light} ${colors.text} border ${colors.border}`,
+                        isDisabled && "opacity-30",
                       )}
                       style={{
                         top: `${timeToPercent(slot.startTime)}%`,
@@ -487,21 +502,18 @@ function WeekView({
 
       {/* Legend */}
       <div className="px-4 pb-3 flex items-center gap-4 text-xs text-muted-foreground">
-        <span>Кликните на курс, чтобы выбрать или отменить выбор</span>
-        <div className="flex items-center gap-4 ml-auto">
-          {blocks.map(block => {
-            const colors = BLOCK_COLORS[block.color];
-            const hasCoursesThisWeek = courses.some(c => c.blockId === block.id);
-            if (!hasCoursesThisWeek) return null;
-            
-            return (
-              <div key={block.id} className="flex items-center gap-1.5">
-                <div className={cn("w-3 h-3 rounded", colors.bg)} />
-                <span>{block.name}</span>
-              </div>
-            );
-          })}
-        </div>
+        {blocks.map(block => {
+          const colors = BLOCK_COLORS[block.color];
+          const hasCoursesThisWeek = courses.some(c => c.blockId === block.id);
+          if (!hasCoursesThisWeek) return null;
+          
+          return (
+            <div key={block.id} className="flex items-center gap-1.5">
+              <div className={cn("w-3 h-3 rounded", colors.bg)} />
+              <span>{block.name}</span>
+            </div>
+          );
+        })}
       </div>
     </>
   );
