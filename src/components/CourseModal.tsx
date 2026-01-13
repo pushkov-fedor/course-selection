@@ -67,9 +67,12 @@ export function CourseModal({
           </div>
 
           {/* Description */}
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            {course.description}
-          </p>
+          <div className="rounded-lg bg-muted/50 p-3">
+            <h4 className="text-sm font-medium mb-1">Описание курса</h4>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {course.description}
+            </p>
+          </div>
 
           {/* Meta badges */}
           <div className="flex flex-wrap gap-2">
@@ -78,6 +81,9 @@ export function CourseModal({
             </Badge>
             <Badge variant="secondary">
               {course.semester}
+            </Badge>
+            <Badge variant="secondary">
+              Онлайн
             </Badge>
             <Badge 
               variant="secondary" 
@@ -107,9 +113,6 @@ export function CourseModal({
                   <div className={cn("w-2 h-2 rounded-full", colors.bg)} />
                   <span className="font-medium w-28">{DAY_NAMES_FULL[slot.dayOfWeek]}</span>
                   <span>{slot.startTime} – {slot.endTime}</span>
-                  {slot.room && (
-                    <span className="text-muted-foreground">• ауд. {slot.room}</span>
-                  )}
                 </div>
               ))}
             </div>
@@ -174,4 +177,3 @@ export function CourseModal({
     </Dialog>
   );
 }
-

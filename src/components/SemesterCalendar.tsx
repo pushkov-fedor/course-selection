@@ -486,7 +486,6 @@ function WeekView({
                         isSelected ? "text-white/80" : "text-muted-foreground"
                       )}>
                         {slot.startTime}–{slot.endTime}
-                        {slot.room && ` • ауд. ${slot.room}`}
                       </div>
                       {isFull && !isSelected && (
                         <div className="text-[9px] text-amber-600 font-medium">мест нет</div>

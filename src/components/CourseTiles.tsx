@@ -123,7 +123,7 @@ export function CourseTiles({
 
                     <CardContent className="space-y-3">
                       {/* Description */}
-                      <p className="text-sm text-muted-foreground line-clamp-2">
+                      <p className="text-sm text-muted-foreground line-clamp-3">
                         {course.description}
                       </p>
 
@@ -131,6 +131,9 @@ export function CourseTiles({
                       <div className="flex flex-wrap gap-2 text-xs">
                         <Badge variant="secondary">
                           {course.credits} кредит{course.credits === 1 ? "" : course.credits < 5 ? "а" : "ов"}
+                        </Badge>
+                        <Badge variant="secondary">
+                          Онлайн
                         </Badge>
                         <Badge 
                           variant="secondary" 
