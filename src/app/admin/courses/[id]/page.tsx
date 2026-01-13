@@ -1,22 +1,28 @@
 // src/app/admin/courses/[id]/page.tsx
 "use client";
 
-import { use } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { CourseForm, CourseFormData } from "@/components/admin/CourseForm";
 import { courseBlocks, getCourseById } from "@/lib/mock-data";
 
-interface EditCoursePageProps {
-  params: Promise<{ id: string }>;
-}
-
-export default function EditCoursePage({ params }: EditCoursePageProps) {
-  const { id } = use(params);
+export default function EditCoursePage() {
+  const params = useParams();
+  const router = useRouter();
+  const id = params.id as string;
   const course = getCourseById(id);
 
   if (!course) {
-    notFound();
+    return (
+      <main className="container mx-auto px-4 py-6 max-w-3xl">
+        <div className="text-center py-12">
+          <h1 className="text-2xl font-bold mb-4">Курс не найден</h1>
+          <Link href="/admin">
+            <button className="text-blue-600 hover:underline">Вернуться к списку</button>
+          </Link>
+        </div>
+      </main>
+    );
   }
 
   const handleSubmit = async (data: CourseFormData) => {

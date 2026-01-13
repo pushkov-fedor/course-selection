@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Course Selection Platform
 
-## Getting Started
+Платформа для записи на курсы в университете.
 
-First, run the development server:
+## Технологии
+
+- **Next.js 16** (App Router)
+- **TypeScript**
+- **Tailwind CSS v4**
+- **shadcn/ui** компоненты
+
+## Разработка
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Открой [http://localhost:3000](http://localhost:3000) в браузере.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Деплой на GitHub Pages
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Проект настроен для автоматического деплоя на GitHub Pages через GitHub Actions.
 
-## Learn More
+### Настройка
 
-To learn more about Next.js, take a look at the following resources:
+1. **Включи GitHub Pages в настройках репозитория:**
+   - Перейди в `Settings` → `Pages`
+   - В разделе `Source` выбери `GitHub Actions`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. **Пуш изменений:**
+   ```bash
+   git add .
+   git commit -m "Configure GitHub Pages"
+   git push
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+3. **Проверь деплой:**
+   - Перейди в `Actions` в репозитории
+   - Дождись завершения workflow `Deploy to GitHub Pages`
+   - Сайт будет доступен по адресу: `https://pushkov-fedor.github.io/course-selection/`
 
-## Deploy on Vercel
+### Если репозиторий не в корне
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Если проект находится в подпапке (например, `frontend/`), раскомментируй в `next.config.ts`:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```typescript
+basePath: "/course-selection",
+assetPrefix: "/course-selection",
+```
+
+И замени `course-selection` на имя твоего репозитория.
+
+## Структура проекта
+
+- `/src/app` - страницы Next.js
+- `/src/components` - React компоненты
+- `/src/lib` - утилиты и mock-данные
+- `/src/types` - TypeScript типы
