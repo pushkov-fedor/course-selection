@@ -5,6 +5,7 @@ import { useState, useMemo } from "react";
 import { SemesterCalendar } from "@/components/SemesterCalendar";
 import { CourseTiles } from "@/components/CourseTiles";
 import { CourseModal } from "@/components/CourseModal";
+import { ConfirmationModal } from "@/components/ConfirmationModal";
 import { Button } from "@/components/ui/button";
 import { mockCourses, courseBlocks, getBlockById } from "@/lib/mock-data";
 import { Selection, ViewMode, BLOCK_COLORS, Course } from "@/types";
@@ -16,6 +17,8 @@ export default function CoursesPage() {
     courseBlocks.map(block => ({ blockId: block.id, courseId: null }))
   );
   const [selectedCourseForModal, setSelectedCourseForModal] = useState<Course | null>(null);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const handleSelectCourse = (blockId: string, courseId: string | null) => {
     setSelections(prev => 
@@ -31,15 +34,21 @@ export default function CoursesPage() {
     setSelectedCourseForModal(null);
   };
 
+  const handleConfirm = () => {
+    setIsSubmitted(true);
+    // TODO: отправить на бэкенд
+    console.log("Отправлено:", selections.filter(s => s.courseId).map(s => s.courseId));
+  };
+
   const selectedCourses = useMemo(() => {
     return selections
       .filter(s => s.courseId !== null)
       .map(s => mockCourses.find(c => c.id === s.courseId))
-      .filter(Boolean);
+      .filter((c): c is Course => c !== undefined);
   }, [selections]);
 
   const totalCredits = useMemo(() => {
-    return selectedCourses.reduce((sum, course) => sum + (course?.credits || 0), 0);
+    return selectedCourses.reduce((sum, course) => sum + course.credits, 0);
   }, [selectedCourses]);
 
   const requiredBlocksSelected = useMemo(() => {
@@ -48,7 +57,7 @@ export default function CoursesPage() {
       .every(b => selections.find(s => s.blockId === b.id)?.courseId !== null);
   }, [selections]);
 
-  // For modal
+  // For course modal
   const modalBlock = selectedCourseForModal ? getBlockById(selectedCourseForModal.blockId) : null;
   const modalIsSelected = selectedCourseForModal 
     ? selections.find(s => s.blockId === selectedCourseForModal.blockId)?.courseId === selectedCourseForModal.id
@@ -222,12 +231,22 @@ export default function CoursesPage() {
                   </div>
                 )}
 
-                <Button 
-                  className="w-full"
-                  disabled={!requiredBlocksSelected}
-                >
-                  Подтвердить выбор
-                </Button>
+                {isSubmitted ? (
+                  <div className="flex items-center gap-2 p-3 bg-emerald-50 rounded-lg text-emerald-700">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="text-sm font-medium">Заявка отправлена</span>
+                  </div>
+                ) : (
+                  <Button 
+                    className="w-full"
+                    disabled={!requiredBlocksSelected || selectedCourses.length === 0}
+                    onClick={() => setIsConfirmModalOpen(true)}
+                  >
+                    Подтвердить выбор
+                  </Button>
+                )}
               </div>
             </div>
           </aside>
@@ -249,6 +268,15 @@ export default function CoursesPage() {
             );
           }
         }}
+      />
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        selectedCourses={selectedCourses}
+        blocks={courseBlocks}
+        onConfirm={handleConfirm}
       />
     </div>
   );
