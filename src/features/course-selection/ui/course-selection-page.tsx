@@ -1,0 +1,259 @@
+// src/features/course-selection/ui/course-selection-page.tsx
+"use client";
+
+import { useState, useEffect, useMemo } from "react";
+import type { DisplayCourse } from "@/entities/course";
+import { mergeCoursesWithOfferings } from "@/entities/course";
+import {
+  getCourses,
+  getCourseOfferings,
+  createEnrollmentRequest,
+  getEnrollmentRequest,
+} from "../api";
+import { CourseGrid } from "./course-grid";
+import { CourseDetailModal } from "./course-detail-modal";
+import { ConfirmModal } from "./confirm-modal";
+import { SwitchModal } from "./switch-modal";
+import { SelectionSidebar } from "./selection-sidebar";
+import { EnrolledCourses } from "./enrolled-courses";
+import { CourseGridSkeleton, SidebarSkeleton } from "./loading-skeleton";
+import { EmptyState } from "./empty-state";
+import { ErrorState } from "./error-state";
+import { Spinner } from "@/shared/ui";
+
+// Test IDs from environment
+const STUDENT_ID =
+  process.env.NEXT_PUBLIC_TEST_STUDENT_ID ||
+  "7a926ded-3337-4e3a-a318-96b61fb65fd9";
+const COHORT_SEMESTER_ID =
+  process.env.NEXT_PUBLIC_TEST_COHORT_SEMESTER_ID ||
+  "7b84b712-083a-4d25-b32a-7014352f0188";
+
+export function CourseSelectionPage() {
+  // Data state
+  const [courses, setCourses] = useState<DisplayCourse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>("");
+
+  // Selection state
+  const [selectedOfferingIds, setSelectedOfferingIds] = useState<string[]>([]);
+  const [selectedCourseForModal, setSelectedCourseForModal] =
+    useState<DisplayCourse | null>(null);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  // Switch state
+  const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false);
+  const [courseToSwitch, setCourseToSwitch] = useState<DisplayCourse | null>(
+    null
+  );
+
+  useEffect(() => {
+    loadCourses();
+    checkExistingRequest();
+  }, []);
+
+  async function loadCourses() {
+    setLoading(true);
+    setError("");
+
+    try {
+      const offerings = await getCourseOfferings({ limit: 100 });
+      const courseIds = [...new Set(offerings.map((o) => o.course_id))];
+      const coursesData = await getCourses({ limit: 100, is_active: true });
+      const relevantCourses = coursesData.filter((c) => courseIds.includes(c.id));
+      const displayCourses = mergeCoursesWithOfferings(relevantCourses, offerings);
+
+      displayCourses.sort((a, b) => {
+        if (a.year !== b.year) return b.year - a.year;
+        if (a.term !== b.term) return a.term === "spring" ? -1 : 1;
+        return a.title.localeCompare(b.title);
+      });
+
+      setCourses(displayCourses);
+    } catch (err) {
+      console.error("Failed to load courses:", err);
+      setError(err instanceof Error ? err.message : "Не удалось загрузить курсы");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function checkExistingRequest() {
+    try {
+      const existingRequest = await getEnrollmentRequest(
+        STUDENT_ID,
+        COHORT_SEMESTER_ID
+      );
+
+      if (!existingRequest) return;
+
+      if (existingRequest.status !== "failed") {
+        setIsSubmitted(true);
+
+        if (existingRequest.courses && existingRequest.courses.length > 0) {
+          const offeringIds = existingRequest.courses.map(
+            (c) => c.CourseOfferingID
+          );
+          setSelectedOfferingIds(offeringIds);
+        }
+      }
+    } catch (err) {
+      console.error("Error checking enrollment request:", err);
+    }
+  }
+
+  function handleToggleSelection(offeringId: string) {
+    if (isSubmitted) return;
+
+    setSelectedOfferingIds((prev) =>
+      prev.includes(offeringId)
+        ? prev.filter((id) => id !== offeringId)
+        : [...prev, offeringId]
+    );
+  }
+
+  async function handleConfirm() {
+    const payload = {
+      student_id: STUDENT_ID,
+      cohort_semester_id: COHORT_SEMESTER_ID,
+      courses: selectedOfferingIds.map((id) => ({
+        course_offering_id: id,
+        type: "main" as const,
+      })),
+      type: "new" as const,
+    };
+
+    await createEnrollmentRequest(payload);
+    setIsSubmitted(true);
+  }
+
+  async function handleSwitchCourse(
+    oldOfferingId: string,
+    newOfferingId: string
+  ) {
+    const payload = {
+      student_id: STUDENT_ID,
+      cohort_semester_id: COHORT_SEMESTER_ID,
+      courses: [],
+      type: "switch" as const,
+      switch: [
+        {
+          from_course_offering_id: oldOfferingId,
+          to_course_offering_id: newOfferingId,
+        },
+      ],
+    };
+
+    await createEnrollmentRequest(payload);
+    await checkExistingRequest();
+  }
+
+  // Computed
+  const selectedCourses = useMemo(() => {
+    return courses.filter((c) => selectedOfferingIds.includes(c.offeringId));
+  }, [courses, selectedOfferingIds]);
+
+  const modalIsSelected = selectedCourseForModal
+    ? selectedOfferingIds.includes(selectedCourseForModal.offeringId)
+    : false;
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-xl font-semibold">Запись на курсы</h1>
+              <p className="text-sm text-muted-foreground">
+                Выберите курсы для записи
+              </p>
+            </div>
+
+            {loading && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Spinner size="sm" />
+                <span>Загрузка...</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </header>
+
+      <div className="container mx-auto px-4 py-6">
+        {error && <ErrorState message={error} onRetry={loadCourses} />}
+
+        <div className="flex gap-6">
+          {/* Main content */}
+          <div className="flex-1 min-w-0">
+            {loading ? (
+              <CourseGridSkeleton />
+            ) : courses.length === 0 ? (
+              <EmptyState />
+            ) : isSubmitted ? (
+              <EnrolledCourses
+                courses={selectedCourses}
+                onOpenDetails={setSelectedCourseForModal}
+                onSwitchCourse={(course) => {
+                  setCourseToSwitch(course);
+                  setIsSwitchModalOpen(true);
+                }}
+              />
+            ) : (
+              <CourseGrid
+                courses={courses}
+                selectedOfferingIds={selectedOfferingIds}
+                onToggleSelection={handleToggleSelection}
+                onOpenCourse={setSelectedCourseForModal}
+              />
+            )}
+          </div>
+
+          {/* Sidebar - only show before submission */}
+          {!isSubmitted && !loading && courses.length > 0 && (
+            <SelectionSidebar
+              selectedCourses={selectedCourses}
+              onRemove={handleToggleSelection}
+              onOpenCourse={setSelectedCourseForModal}
+              onConfirm={() => setIsConfirmModalOpen(true)}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Modals */}
+      <CourseDetailModal
+        course={selectedCourseForModal}
+        isSelected={modalIsSelected}
+        isSubmitted={isSubmitted}
+        onClose={() => setSelectedCourseForModal(null)}
+        onToggleSelect={() => {
+          if (selectedCourseForModal) {
+            handleToggleSelection(selectedCourseForModal.offeringId);
+          }
+        }}
+      />
+
+      <ConfirmModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        selectedCourses={selectedCourses}
+        onConfirm={handleConfirm}
+      />
+
+      <SwitchModal
+        isOpen={isSwitchModalOpen}
+        onClose={() => {
+          setIsSwitchModalOpen(false);
+          setCourseToSwitch(null);
+        }}
+        courseToReplace={courseToSwitch}
+        availableCourses={courses}
+        enrolledOfferingIds={selectedOfferingIds}
+        onSubmit={handleSwitchCourse}
+      />
+    </div>
+  );
+}
+
