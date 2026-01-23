@@ -1,43 +1,22 @@
-// src/features/course-management/ui/course-list-page.tsx
+// src/features/cohort-management/ui/cohort-list-page.tsx
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
-import {
-  Plus,
-  BookOpen,
-  Calendar,
-  ChevronRight,
-  Copy,
-  Check,
-  AlertTriangle,
-  Search,
-  Users,
-} from "lucide-react";
-import {
-  Button,
-  Badge,
-  Card,
-  Input,
-  Spinner,
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/shared/ui";
+import { Plus, Users, Calendar, ChevronRight, Loader2, Copy, Check, AlertTriangle } from "lucide-react";
+import { Button, Badge, Card, Spinner, Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/shared/ui";
 import { toast } from "sonner";
 import { cn } from "@/shared/lib";
 import { ApiError } from "@/shared/api/client";
-import type { Course, CourseOffering } from "@/entities/course";
 import {
-  getCourses,
-  getCourseOfferings,
-  deleteCourse,
-  deleteCourseOffering,
+  getCohorts,
+  getCohortSemesters,
+  deleteCohort,
+  deleteCohortSemester,
+  type Cohort,
+  type CohortSemester,
 } from "../api";
-import { OfferingFormModal } from "./offering-form-modal";
+import { CohortForm } from "./cohort-form";
+import { SemesterForm } from "./semester-form";
 
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString("ru-RU", {
@@ -51,13 +30,13 @@ function getTermLabel(term: string): string {
   return term === "spring" ? "Весна" : "Осень";
 }
 
-function getOfferingStatus(offering: CourseOffering): {
+function getSemesterStatus(semester: CohortSemester): {
   label: string;
   variant: "success" | "secondary" | "destructive";
 } {
   const now = new Date();
-  const open = new Date(offering.enrollment_open);
-  const close = new Date(offering.enrollment_close);
+  const open = new Date(semester.enrollment_open);
+  const close = new Date(semester.enrollment_close);
 
   if (now < open) {
     return { label: "Скоро", variant: "secondary" };
@@ -92,21 +71,22 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
-export function CourseListPage() {
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [offerings, setOfferings] = useState<CourseOffering[]>([]);
+export function CohortListPage() {
+  const [cohorts, setCohorts] = useState<Cohort[]>([]);
+  const [semesters, setSemesters] = useState<CohortSemester[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [expandedCourseId, setExpandedCourseId] = useState<string | null>(null);
+  const [expandedCohortId, setExpandedCohortId] = useState<string | null>(null);
 
   // Modal state
-  const [showOfferingForm, setShowOfferingForm] = useState(false);
-  const [editingOffering, setEditingOffering] = useState<CourseOffering | null>(null);
-  const [offeringCourseId, setOfferingCourseId] = useState<string>("");
-
+  const [showCohortForm, setShowCohortForm] = useState(false);
+  const [editingCohort, setEditingCohort] = useState<Cohort | null>(null);
+  const [showSemesterForm, setShowSemesterForm] = useState(false);
+  const [editingSemester, setEditingSemester] = useState<CohortSemester | null>(null);
+  const [semesterCohortId, setSemesterCohortId] = useState<string>("");
+  
   // Delete confirmation dialog state
   const [deleteConfirm, setDeleteConfirm] = useState<{
-    type: "course" | "offering";
+    type: "cohort" | "semester";
     id: string;
     name?: string;
   } | null>(null);
@@ -114,95 +94,78 @@ export function CourseListPage() {
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
-      const [activeCourses, inactiveCourses, offeringsData] = await Promise.all([
-        getCourses({ limit: 200, is_active: true }),
-        getCourses({ limit: 200, is_active: false }),
-        getCourseOfferings({ limit: 500 }),
+      const [cohortsData, semestersData] = await Promise.all([
+        getCohorts({ limit: 100 }),
+        getCohortSemesters({ limit: 200 }),
       ]);
+      setCohorts(cohortsData);
+      setSemesters(semestersData);
 
-      const allCourses = [...activeCourses, ...inactiveCourses];
-      allCourses.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
-      setCourses(allCourses);
-      setOfferings(offeringsData);
-
-      // Auto-expand first course
-      if (allCourses.length > 0 && !expandedCourseId) {
-        setExpandedCourseId(allCourses[0].id);
+      // Auto-expand first cohort
+      if (cohortsData.length > 0 && !expandedCohortId) {
+        setExpandedCohortId(cohortsData[0].id);
       }
     } catch (err) {
       console.error("Failed to load data:", err);
-      toast.error("Не удалось загрузить данные");
     } finally {
       setLoading(false);
     }
-  }, [expandedCourseId]);
+  }, [expandedCohortId]);
 
   useEffect(() => {
     loadData();
   }, []);
 
-  const handleDeleteCourse = (id: string, name: string) => {
-    setDeleteConfirm({ type: "course", id, name });
+  const handleDeleteCohort = (id: string, name: string) => {
+    setDeleteConfirm({ type: "cohort", id, name });
   };
 
-  const handleDeleteOffering = (id: string) => {
-    setDeleteConfirm({ type: "offering", id });
+  const handleDeleteSemester = (id: string) => {
+    setDeleteConfirm({ type: "semester", id });
   };
 
   const confirmDelete = async () => {
     if (!deleteConfirm) return;
 
     const { type, id, name } = deleteConfirm;
-    setDeleteConfirm(null);
-
+    setDeleteConfirm(null); // Close confirmation modal immediately
+    
     try {
-      if (type === "course") {
-        await deleteCourse(id);
-        setCourses((prev) => prev.filter((c) => c.id !== id));
-        setOfferings((prev) => prev.filter((o) => o.course_id !== id));
-        toast.success(`Курс "${name}" успешно удалён`);
+      if (type === "cohort") {
+        await deleteCohort(id);
+        setCohorts((prev) => prev.filter((c) => c.id !== id));
+        setSemesters((prev) => prev.filter((s) => s.cohort_id !== id));
+        toast.success(`Поток "${name}" успешно удалён`);
       } else {
-        await deleteCourseOffering(id);
-        setOfferings((prev) => prev.filter((o) => o.id !== id));
-        toast.success("Запись на курс удалена");
+        await deleteCohortSemester(id);
+        setSemesters((prev) => prev.filter((s) => s.id !== id));
+        toast.success("Семестр успешно удалён");
       }
     } catch (err) {
       console.error(`Failed to delete ${type}:`, err);
-      let errorMessage = `Не удалось удалить ${type === "course" ? "курс" : "запись"}`;
-
+      let errorMessage = `Не удалось удалить ${type === "cohort" ? "поток" : "семестр"}`;
+      
       if (err instanceof ApiError) {
         if (err.message && err.message !== `Request failed with status ${err.status}`) {
           errorMessage = err.message;
         } else if (err.status === 500) {
-          errorMessage = "Ошибка сервера. Возможно, есть связанные данные.";
+          errorMessage = "Ошибка сервера. Возможно, поток связан с другими данными.";
         } else if (err.status === 404) {
-          errorMessage = `${type === "course" ? "Курс" : "Запись"} не найден(а).`;
+          errorMessage = `${type === "cohort" ? "Поток" : "Семестр"} не найден.`;
         }
       } else if (err instanceof Error) {
         errorMessage = err.message;
       }
-
+      
       toast.error(errorMessage);
     }
   };
 
-  const getOfferingsForCourse = (courseId: string) => {
-    return offerings
-      .filter((o) => o.course_id === courseId)
-      .sort((a, b) => {
-        // Sort by year desc, then by term
-        if (b.year !== a.year) return b.year - a.year;
-        return a.term === "fall" ? -1 : 1;
-      });
+  const getSemestersForCohort = (cohortId: string) => {
+    return semesters
+      .filter((s) => s.cohort_id === cohortId)
+      .sort((a, b) => b.number - a.number);
   };
-
-  const filteredCourses = courses.filter((course) => {
-    const searchLower = search.toLowerCase();
-    return (
-      (course.title || "").toLowerCase().includes(searchLower) ||
-      (course.code || "").toLowerCase().includes(searchLower)
-    );
-  });
 
   if (loading) {
     return (
@@ -219,64 +182,45 @@ export function CourseListPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Курсы</h1>
+          <h1 className="text-2xl font-bold">Потоки и семестры</h1>
           <p className="text-muted-foreground">
-            {courses.length} курсов, {offerings.length} открытых записей
+            {cohorts.length} потоков, {semesters.length} семестров
           </p>
         </div>
-        <Link href="/admin/courses/create">
-          <Button className="gap-2">
-            <Plus className="size-4" />
-            Создать курс
-          </Button>
-        </Link>
-      </div>
-
-      {/* Search */}
-      <div className="flex gap-4 mb-6">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-          <Input
-            placeholder="Поиск по названию или коду..."
-            value={search}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
-            className="pl-10"
-          />
-        </div>
+        <Button onClick={() => setShowCohortForm(true)} className="gap-2">
+          <Plus className="size-4" />
+          Создать поток
+        </Button>
       </div>
 
       {/* Content */}
-      {filteredCourses.length === 0 ? (
+      {cohorts.length === 0 ? (
         <Card className="p-12 text-center">
-          <BookOpen className="size-12 mx-auto text-muted-foreground/50 mb-4" />
-          <h3 className="text-lg font-medium mb-2">Нет курсов</h3>
+          <Users className="size-12 mx-auto text-muted-foreground/50 mb-4" />
+          <h3 className="text-lg font-medium mb-2">Нет потоков</h3>
           <p className="text-muted-foreground mb-4">
-            {search ? "Курсы не найдены по запросу" : "Создайте первый курс"}
+            Создайте первый поток студентов
           </p>
-          {!search && (
-            <Link href="/admin/courses/create">
-              <Button>
-                <Plus className="size-4 mr-2" />
-                Создать курс
-              </Button>
-            </Link>
-          )}
+          <Button onClick={() => setShowCohortForm(true)}>
+            <Plus className="size-4 mr-2" />
+            Создать поток
+          </Button>
         </Card>
       ) : (
-        <div className="space-y-3">
-          {filteredCourses.map((course) => {
-            const isExpanded = expandedCourseId === course.id;
-            const courseOfferings = getOfferingsForCourse(course.id);
+        <div className="space-y-4">
+          {cohorts.map((cohort) => {
+            const isExpanded = expandedCohortId === cohort.id;
+            const cohortSemesters = getSemestersForCohort(cohort.id);
 
             return (
-              <Card key={course.id} className="overflow-hidden">
-                {/* Course Header */}
+              <Card key={cohort.id} className="overflow-hidden">
+                {/* Cohort Header */}
                 <div
                   className={cn(
                     "p-4 flex items-center gap-4 cursor-pointer hover:bg-muted/30 transition-colors",
                     isExpanded && "border-b"
                   )}
-                  onClick={() => setExpandedCourseId(isExpanded ? null : course.id)}
+                  onClick={() => setExpandedCohortId(isExpanded ? null : cohort.id)}
                 >
                   <ChevronRight
                     className={cn(
@@ -286,36 +230,39 @@ export function CourseListPage() {
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3">
-                      <BookOpen className="size-5 text-primary" />
-                      <h3 className="font-semibold">{course.title || "Без названия"}</h3>
-                      {course.code && (
-                        <Badge variant="outline">{course.code}</Badge>
-                      )}
-                      <Badge variant={course.is_active ? "success" : "secondary"}>
-                        {course.is_active ? "Опубликован" : "Скрыт"}
+                      <Users className="size-5 text-primary" />
+                      <h3 className="font-semibold">{cohort.name}</h3>
+                      <Badge variant="outline">
+                        {cohort.admission_year}–{cohort.graduation_year}
                       </Badge>
                     </div>
                     <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-                      <span>{courseOfferings.length} открытий курса</span>
+                      <span>{cohortSemesters.length} семестров</span>
                       <span className="flex items-center gap-1">
-                        ID: <code className="text-xs">{course.id.slice(0, 8)}...</code>
-                        <CopyButton text={course.id} />
+                        ID: <code className="text-xs">{cohort.id.slice(0, 8)}...</code>
+                        <CopyButton text={cohort.id} />
                       </span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Link href={`/admin/courses/${course.id}`} onClick={(e) => e.stopPropagation()}>
-                      <Button variant="ghost" size="sm">
-                        Редактировать
-                      </Button>
-                    </Link>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingCohort(cohort);
+                        setShowCohortForm(true);
+                      }}
+                    >
+                      Редактировать
+                    </Button>
                     <Button
                       variant="ghost"
                       size="sm"
                       className="text-destructive hover:text-destructive"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDeleteCourse(course.id, course.title || "курс");
+                        handleDeleteCohort(cohort.id, cohort.name);
                       }}
                     >
                       Удалить
@@ -323,62 +270,61 @@ export function CourseListPage() {
                   </div>
                 </div>
 
-                {/* Offerings */}
+                {/* Semesters */}
                 {isExpanded && (
                   <div className="p-4 bg-muted/20">
                     <div className="flex items-center justify-between mb-3">
                       <h4 className="text-sm font-medium text-muted-foreground">
-                        Открытие курсов
+                        Семестры потока
                       </h4>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => {
-                          setOfferingCourseId(course.id);
-                          setEditingOffering(null);
-                          setShowOfferingForm(true);
+                          setSemesterCohortId(cohort.id);
+                          setEditingSemester(null);
+                          setShowSemesterForm(true);
                         }}
                       >
                         <Plus className="size-4 mr-1" />
-                        Открыть запись
+                        Добавить семестр
                       </Button>
                     </div>
 
-                    {courseOfferings.length === 0 ? (
+                    {cohortSemesters.length === 0 ? (
                       <div className="text-center py-6 text-muted-foreground">
                         <Calendar className="size-8 mx-auto mb-2 opacity-30" />
-                        <p className="text-sm">Нет открытых записей</p>
+                        <p className="text-sm">Нет семестров</p>
                       </div>
                     ) : (
                       <div className="space-y-2">
-                        {courseOfferings.map((offering) => {
-                          const status = getOfferingStatus(offering);
+                        {cohortSemesters.map((semester) => {
+                          const status = getSemesterStatus(semester);
                           return (
                             <div
-                              key={offering.id}
+                              key={semester.id}
                               className="p-3 rounded-lg bg-background border flex items-center gap-4"
                             >
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
                                   <span className="font-medium">
-                                    {getTermLabel(offering.term)} {offering.year}
+                                    {semester.number}-й семестр
                                   </span>
+                                  <Badge variant="outline">
+                                    {getTermLabel(semester.term)}
+                                  </Badge>
                                   <Badge variant={status.variant}>
                                     {status.label}
                                   </Badge>
                                 </div>
                                 <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-                                  <span className="flex items-center gap-1">
-                                    <Users className="size-3.5" />
-                                    {offering.enrolled || 0}/{offering.capacity} мест
-                                  </span>
                                   <span>
-                                    Запись: {formatDate(offering.enrollment_open)} —{" "}
-                                    {formatDate(offering.enrollment_close)}
+                                    Запись: {formatDate(semester.enrollment_open)} —{" "}
+                                    {formatDate(semester.enrollment_close)}
                                   </span>
                                   <span className="flex items-center gap-1">
-                                    ID: <code className="text-xs">{offering.id.slice(0, 8)}...</code>
-                                    <CopyButton text={offering.id} />
+                                    ID: <code className="text-xs">{semester.id.slice(0, 8)}...</code>
+                                    <CopyButton text={semester.id} />
                                   </span>
                                 </div>
                               </div>
@@ -387,9 +333,9 @@ export function CourseListPage() {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => {
-                                    setOfferingCourseId(course.id);
-                                    setEditingOffering(offering);
-                                    setShowOfferingForm(true);
+                                    setSemesterCohortId(cohort.id);
+                                    setEditingSemester(semester);
+                                    setShowSemesterForm(true);
                                   }}
                                 >
                                   Редактировать
@@ -398,7 +344,7 @@ export function CourseListPage() {
                                   variant="ghost"
                                   size="sm"
                                   className="text-destructive hover:text-destructive"
-                                  onClick={() => handleDeleteOffering(offering.id)}
+                                  onClick={() => handleDeleteSemester(semester.id)}
                                 >
                                   Удалить
                                 </Button>
@@ -416,25 +362,40 @@ export function CourseListPage() {
         </div>
       )}
 
-      {/* Offering Form Modal */}
-      <OfferingFormModal
-        isOpen={showOfferingForm}
-        offering={editingOffering}
-        courseId={offeringCourseId}
+      {/* Cohort Form Modal */}
+      <CohortForm
+        isOpen={showCohortForm}
+        cohort={editingCohort}
         onClose={() => {
-          setShowOfferingForm(false);
-          setEditingOffering(null);
+          setShowCohortForm(false);
+          setEditingCohort(null);
         }}
         onSuccess={() => {
-          setShowOfferingForm(false);
-          setEditingOffering(null);
+          setShowCohortForm(false);
+          setEditingCohort(null);
+          loadData();
+        }}
+      />
+
+      {/* Semester Form Modal */}
+      <SemesterForm
+        isOpen={showSemesterForm}
+        semester={editingSemester}
+        cohortId={semesterCohortId}
+        onClose={() => {
+          setShowSemesterForm(false);
+          setEditingSemester(null);
+        }}
+        onSuccess={() => {
+          setShowSemesterForm(false);
+          setEditingSemester(null);
           loadData();
         }}
       />
 
       {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={deleteConfirm !== null}
+      <Dialog 
+        open={deleteConfirm !== null} 
         onOpenChange={(open) => !open && setDeleteConfirm(null)}
       >
         <DialogContent className="sm:max-w-md">
@@ -444,21 +405,21 @@ export function CourseListPage() {
                 <AlertTriangle className="size-5 text-destructive" />
               </div>
               <DialogTitle className="text-left">
-                {deleteConfirm?.type === "course" ? "Удалить курс?" : "Удалить запись?"}
+                {deleteConfirm?.type === "cohort" ? "Удалить поток?" : "Удалить семестр?"}
               </DialogTitle>
             </div>
             <DialogDescription className="text-left pt-2">
-              {deleteConfirm?.type === "course" ? (
+              {deleteConfirm?.type === "cohort" ? (
                 <>
-                  Вы уверены, что хотите удалить курс{" "}
+                  Вы уверены, что хотите удалить поток{" "}
                   <span className="font-semibold text-foreground">
                     {deleteConfirm.name}
                   </span>
-                  ? Все открытия курса тоже будут удалены. Это действие нельзя отменить.
+                  ? Все семестры потока тоже будут удалены. Это действие нельзя отменить.
                 </>
               ) : (
                 <>
-                  Вы уверены, что хотите удалить эту запись на курс? Это действие нельзя отменить.
+                  Вы уверены, что хотите удалить этот семестр? Это действие нельзя отменить.
                 </>
               )}
             </DialogDescription>
@@ -481,6 +442,8 @@ export function CourseListPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
     </main>
   );
 }
+

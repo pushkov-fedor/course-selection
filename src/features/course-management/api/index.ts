@@ -6,6 +6,7 @@ export {
   updateCourse,
   deleteCourse,
   getCourseOfferings,
+  deleteCourseOffering,
   type CreateCourseDTO,
   type UpdateCourseDTO,
 } from "./courses";

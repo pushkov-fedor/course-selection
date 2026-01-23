@@ -25,8 +25,6 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --color-success: var(--success);
-  --color-success-foreground: var(--success-foreground);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -34,29 +32,27 @@
   --radius-2xl: calc(var(--radius) + 8px);
 }
 
-/* my.itmo color scheme - clean, minimal, professional */
+/* Светлая тема */
 :root {
-  --radius: 0.625rem;
+  --radius: 0.5rem;
   --background: #ffffff;
-  --foreground: #1a1a2e;
+  --foreground: #0f172a;
   --card: #ffffff;
-  --card-foreground: #1a1a2e;
+  --card-foreground: #0f172a;
   --popover: #ffffff;
-  --popover-foreground: #1a1a2e;
-  --primary: #1d4ed8;
+  --popover-foreground: #0f172a;
+  --primary: #2563eb;
   --primary-foreground: #ffffff;
-  --secondary: #f8fafc;
-  --secondary-foreground: #1a1a2e;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0f172a;
   --muted: #f1f5f9;
   --muted-foreground: #64748b;
-  --accent: #eff6ff;
-  --accent-foreground: #1d4ed8;
-  --destructive: #dc2626;
-  --success: #16a34a;
-  --success-foreground: #ffffff;
+  --accent: #f1f5f9;
+  --accent-foreground: #0f172a;
+  --destructive: #ef4444;
   --border: #e2e8f0;
   --input: #e2e8f0;
-  --ring: #1d4ed8;
+  --ring: #2563eb;
 }
 
 @layer base {
@@ -65,150 +61,19 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 }
 
-/* Custom animations */
-@keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
+/* Цвета для блоков курсов */
+.block-blue { --block-color: #3b82f6; }
+.block-emerald { --block-color: #10b981; }
+.block-amber { --block-color: #f59e0b; }
+.block-violet { --block-color: #8b5cf6; }
+.block-rose { --block-color: #f43f5e; }
+.block-cyan { --block-color: #06b6d4; }
 
-@keyframes fade-in-up {
-  from { 
-    opacity: 0; 
-    transform: translateY(10px); 
-  }
-  to { 
-    opacity: 1; 
-    transform: translateY(0); 
-  }
-}
-
-@keyframes fade-in-down {
-  from { 
-    opacity: 0; 
-    transform: translateY(-10px); 
-  }
-  to { 
-    opacity: 1; 
-    transform: translateY(0); 
-  }
-}
-
-@keyframes scale-in {
-  from { 
-    opacity: 0; 
-    transform: scale(0.95); 
-  }
-  to { 
-    opacity: 1; 
-    transform: scale(1); 
-  }
-}
-
-@keyframes slide-in-right {
-  from { 
-    opacity: 0; 
-    transform: translateX(20px); 
-  }
-  to { 
-    opacity: 1; 
-    transform: translateX(0); 
-  }
-}
-
-@keyframes pulse-soft {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
-}
-
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-@keyframes check-scale {
-  0% { transform: scale(0); }
-  50% { transform: scale(1.2); }
-  100% { transform: scale(1); }
-}
-
-/* Animation utility classes */
-.animate-fade-in {
-  animation: fade-in 0.3s ease-out forwards;
-}
-
-.animate-fade-in-up {
-  animation: fade-in-up 0.4s ease-out forwards;
-}
-
-.animate-fade-in-down {
-  animation: fade-in-down 0.4s ease-out forwards;
-}
-
-.animate-scale-in {
-  animation: scale-in 0.3s ease-out forwards;
-}
-
-.animate-slide-in-right {
-  animation: slide-in-right 0.4s ease-out forwards;
-}
-
-.animate-pulse-soft {
-  animation: pulse-soft 2s ease-in-out infinite;
-}
-
-.animate-check-scale {
-  animation: check-scale 0.3s ease-out forwards;
-}
-
-/* Stagger animation delays for lists */
-.stagger-1 { animation-delay: 50ms; }
-.stagger-2 { animation-delay: 100ms; }
-.stagger-3 { animation-delay: 150ms; }
-.stagger-4 { animation-delay: 200ms; }
-.stagger-5 { animation-delay: 250ms; }
-.stagger-6 { animation-delay: 300ms; }
-.stagger-7 { animation-delay: 350ms; }
-.stagger-8 { animation-delay: 400ms; }
-
-/* Skeleton shimmer effect */
-.skeleton {
-  background: linear-gradient(
-    90deg,
-    var(--muted) 0%,
-    #e2e8f0 50%,
-    var(--muted) 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-}
-
-/* Smooth focus states */
-.focus-ring {
-  @apply outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2;
-}
-
-/* Interactive card hover effect */
-.card-interactive {
-  @apply transition-all duration-200 hover:shadow-lg hover:border-primary/30 hover:-translate-y-0.5;
-}
-
-/* Status indicator dot */
-.status-dot {
-  @apply inline-block w-2 h-2 rounded-full;
-}
-
-.status-dot-open {
-  @apply bg-success;
-}
-
-.status-dot-closed {
-  @apply bg-muted-foreground;
-}
-
-.status-dot-full {
-  @apply bg-destructive;
+/* Timeline grid */
+.timeline-grid {
+  display: grid;
+  grid-template-columns: 200px repeat(var(--days-count, 7), minmax(120px, 1fr));
 }

@@ -1,6 +1,7 @@
 // src/app/layout.tsx
 import type { Metadata } from "next";
 import { Nunito_Sans } from "next/font/google";
+import { Toaster } from "@/shared/ui";
 import "./globals.css";
 
 const nunito = Nunito_Sans({
@@ -23,6 +24,7 @@ export default function RootLayout({
     <html lang="ru">
       <body className={`${nunito.variable} font-sans antialiased`}>
         {children}
+        <Toaster />
       </body>
     </html>
   );

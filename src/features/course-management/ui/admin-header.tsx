@@ -1,6 +1,6 @@
 // src/features/course-management/ui/admin-header.tsx
 import Link from "next/link";
-import { Settings, ArrowLeft, BookOpen, Calendar } from "lucide-react";
+import { Settings, ArrowLeft, BookOpen, Users } from "lucide-react";
 
 export function AdminHeader() {
   return (
@@ -24,11 +24,11 @@ export function AdminHeader() {
                 Курсы
               </Link>
               <Link
-                href="/admin/offerings"
+                href="/admin/cohorts"
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm text-white/70 hover:text-white hover:bg-white/10 transition-colors"
               >
-                <Calendar className="size-4" />
-                Открытие курсов
+                <Users className="size-4" />
+                Потоки
               </Link>
             </nav>
           </div>

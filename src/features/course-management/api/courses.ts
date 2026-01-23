@@ -85,3 +85,7 @@ export async function updateCourseOffering(
   return patch<CourseOffering>(`/course-offering/${id}`, data);
 }
 
+export async function deleteCourseOffering(id: string): Promise<void> {
+  return del<void>(`/course-offering/${id}`);
+}
+

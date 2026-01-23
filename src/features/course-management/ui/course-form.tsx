@@ -67,7 +67,7 @@ export function CourseForm({ course, onSubmit }: CourseFormProps) {
             <label className="text-sm font-medium">Код курса</label>
             <Input
               value={code}
-              onChange={(e) => setCode(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCode(e.target.value)}
               placeholder="Например: CS101"
             />
             <p className="text-xs text-muted-foreground">Опционально</p>
@@ -77,7 +77,7 @@ export function CourseForm({ course, onSubmit }: CourseFormProps) {
             <label className="text-sm font-medium">Название курса *</label>
             <Input
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTitle(e.target.value)}
               placeholder="Например: Машинное обучение"
               required
             />
@@ -94,7 +94,7 @@ export function CourseForm({ course, onSubmit }: CourseFormProps) {
               className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all resize-none"
             />
             <p className="text-xs text-muted-foreground">
-              Можно использовать JSON формат для структурированного описания
+              Опишите содержание, цели и требования курса
             </p>
           </div>
 
@@ -107,7 +107,7 @@ export function CourseForm({ course, onSubmit }: CourseFormProps) {
               className="size-4 rounded border-input accent-primary"
             />
             <label htmlFor="is_active" className="text-sm font-medium cursor-pointer">
-              Курс активен (показывать студентам)
+              Опубликовать курс (виден студентам)
             </label>
           </div>
         </div>
@@ -118,11 +118,10 @@ export function CourseForm({ course, onSubmit }: CourseFormProps) {
         <div className="flex gap-3">
           <Info className="size-5 shrink-0 mt-0.5 text-primary" />
           <div className="text-sm">
-            <p className="font-medium mb-1">Дополнительная информация</p>
+            <p className="font-medium mb-1">Следующий шаг</p>
             <p className="text-muted-foreground">
-              После создания курса вам нужно будет создать Course Offering (предложение на
-              запись) с указанием capacity (количества мест), enrollment period (периода
-              записи) и term/year (семестра и года).
+              После создания курса откройте запись на него — укажите семестр, год,
+              количество мест и период записи.
             </p>
           </div>
         </div>

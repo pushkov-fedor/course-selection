@@ -27,4 +27,5 @@ export { Progress, type ProgressProps } from "./progress";
 export { Skeleton } from "./skeleton";
 export { Spinner } from "./spinner";
 export { Input, type InputProps } from "./input";
+export { Toaster } from "./toaster";
 
