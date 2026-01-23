@@ -16,7 +16,7 @@ interface CourseFormProps {
 export interface CourseFormData {
   code?: string;
   title: string;
-  description: string;
+  description?: string;
   is_active: boolean;
 }
 
@@ -45,7 +45,7 @@ export function CourseForm({ course, onSubmit }: CourseFormProps) {
       await onSubmit({
         code: code || undefined,
         title,
-        description,
+        description: description || undefined,
         is_active: isActive,
       });
       router.push("/admin");
@@ -97,17 +97,16 @@ export function CourseForm({ course, onSubmit }: CourseFormProps) {
           </div>
 
           <div className="sm:col-span-2 space-y-2">
-            <label className="text-sm font-medium">Описание *</label>
+            <label className="text-sm font-medium">Описание</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Опишите содержание курса..."
-              required
               rows={6}
               className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all resize-none"
             />
             <p className="text-xs text-muted-foreground">
-              Опишите содержание, цели и требования курса
+              Опишите содержание, цели и требования курса (опционально)
             </p>
           </div>
 

@@ -6,7 +6,7 @@ import type { Course, CourseOffering } from "@/entities/course";
 export interface CreateCourseDTO {
   code?: string;
   title?: string;
-  description: string;
+  description?: string;
   is_active: boolean;
 }
 
