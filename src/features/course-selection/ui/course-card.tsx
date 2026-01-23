@@ -8,9 +8,8 @@ import {
   formatTerm,
   getStatusLabel,
   getStatusVariant,
-  pluralizeSeats,
 } from "@/entities/course";
-import { Info } from "lucide-react";
+import { Info, Users } from "lucide-react";
 
 interface CourseCardProps {
   course: DisplayCourse;
@@ -32,17 +31,25 @@ export function CourseCard({
   const canSelect = course.status === "open" && course.availableSeats > 0;
   const isDisabled = disabled || !canSelect;
 
+  const isFull = course.status === "full";
+
   return (
     <Card
       className={cn(
-        "relative flex flex-col opacity-0 animate-fade-in-up",
+        "relative flex flex-col animate-fade-in-up overflow-hidden",
         isSelected && "ring-2 ring-primary border-primary",
-        !isDisabled && "cursor-pointer hover:shadow-md hover:border-primary/30",
-        isDisabled && "opacity-60"
+        !isDisabled && "cursor-pointer hover:shadow-md hover:border-primary/30"
       )}
       style={{ animationDelay: `${animationDelay}ms` }}
       onClick={() => !isDisabled && onToggle()}
     >
+      {/* Full course overlay indicator */}
+      {isFull && (
+        <div className="absolute top-3 right-3 bg-destructive/10 text-destructive text-xs font-medium px-2 py-1 rounded-md">
+          Мест нет
+        </div>
+      )}
+
       {/* Header */}
       <div className="p-4 sm:p-5 pb-0">
         <div className="flex items-start justify-between gap-3">
@@ -60,12 +67,14 @@ export function CourseCard({
             </p>
           </div>
 
-          <Checkbox
-            checked={isSelected}
-            onCheckedChange={() => !isDisabled && onToggle()}
-            disabled={isDisabled}
-            onClick={(e) => e.stopPropagation()}
-          />
+          {!isFull && (
+            <Checkbox
+              checked={isSelected}
+              onCheckedChange={() => !isDisabled && onToggle()}
+              disabled={isDisabled}
+              onClick={(e) => e.stopPropagation()}
+            />
+          )}
         </div>
       </div>
 
@@ -82,20 +91,15 @@ export function CourseCard({
           <Badge variant={getStatusVariant(course.status)}>
             {getStatusLabel(course.status)}
           </Badge>
-          <span className="text-muted-foreground">
-            <span
-              className={cn(
-                "font-medium",
-                course.availableSeats === 0 && "text-destructive",
-                course.availableSeats > 0 &&
-                  course.availableSeats <= 5 &&
-                  "text-amber-600"
-              )}
-            >
-              {course.availableSeats}
-            </span>{" "}
-            {pluralizeSeats(course.availableSeats)}
-          </span>
+          <div className={cn(
+            "flex items-center gap-1.5 font-medium",
+            course.availableSeats === 0 && "text-destructive",
+            course.availableSeats > 0 && course.availableSeats <= 5 && "text-amber-600",
+            course.availableSeats > 5 && "text-muted-foreground"
+          )}>
+            <Users className="size-3.5" />
+            <span>{course.enrolled}/{course.capacity}</span>
+          </div>
         </div>
 
         {/* Actions */}
