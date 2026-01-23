@@ -12,6 +12,7 @@ import {
   Input,
 } from "@/shared/ui";
 import { createCohortSemester, updateCohortSemester, type CohortSemester } from "../api";
+import { getErrorMessage } from "@/shared/lib";
 
 interface SemesterFormProps {
   isOpen: boolean;
@@ -92,7 +93,7 @@ export function SemesterForm({
       onSuccess();
     } catch (err) {
       console.error("Failed to save semester:", err);
-      setError("Не удалось сохранить семестр");
+      setError(getErrorMessage(err, "Не удалось сохранить семестр"));
     } finally {
       setLoading(false);
     }

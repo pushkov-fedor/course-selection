@@ -28,8 +28,7 @@ import {
   DialogFooter,
 } from "@/shared/ui";
 import { toast } from "sonner";
-import { cn } from "@/shared/lib";
-import { ApiError } from "@/shared/api/client";
+import { cn, getErrorMessage } from "@/shared/lib";
 import type { Course, CourseOffering } from "@/entities/course";
 import {
   getCourses,
@@ -131,7 +130,7 @@ export function CourseListPage() {
       }
     } catch (err) {
       console.error("Failed to load data:", err);
-      toast.error("Не удалось загрузить данные");
+      toast.error(getErrorMessage(err, "Не удалось загрузить данные"));
     } finally {
       setLoading(false);
     }
@@ -168,21 +167,8 @@ export function CourseListPage() {
       }
     } catch (err) {
       console.error(`Failed to delete ${type}:`, err);
-      let errorMessage = `Не удалось удалить ${type === "course" ? "курс" : "запись"}`;
-
-      if (err instanceof ApiError) {
-        if (err.message && err.message !== `Request failed with status ${err.status}`) {
-          errorMessage = err.message;
-        } else if (err.status === 500) {
-          errorMessage = "Ошибка сервера. Возможно, есть связанные данные.";
-        } else if (err.status === 404) {
-          errorMessage = `${type === "course" ? "Курс" : "Запись"} не найден(а).`;
-        }
-      } else if (err instanceof Error) {
-        errorMessage = err.message;
-      }
-
-      toast.error(errorMessage);
+      const fallback = `Не удалось удалить ${type === "course" ? "курс" : "запись"}`;
+      toast.error(getErrorMessage(err, fallback));
     }
   };
 

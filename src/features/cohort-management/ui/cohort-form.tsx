@@ -12,6 +12,7 @@ import {
   Input,
 } from "@/shared/ui";
 import { createCohort, updateCohort, type Cohort } from "../api";
+import { getErrorMessage } from "@/shared/lib";
 
 interface CohortFormProps {
   isOpen: boolean;
@@ -69,7 +70,7 @@ export function CohortForm({ isOpen, cohort, onClose, onSuccess }: CohortFormPro
       onSuccess();
     } catch (err) {
       console.error("Failed to save cohort:", err);
-      setError("Не удалось сохранить поток");
+      setError(getErrorMessage(err, "Не удалось сохранить поток"));
     } finally {
       setLoading(false);
     }

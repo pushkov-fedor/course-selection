@@ -2,11 +2,10 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Users, Calendar, ChevronRight, Loader2, Copy, Check, AlertTriangle } from "lucide-react";
+import { Plus, Users, Calendar, ChevronRight, Copy, Check, AlertTriangle } from "lucide-react";
 import { Button, Badge, Card, Spinner, Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/shared/ui";
 import { toast } from "sonner";
-import { cn } from "@/shared/lib";
-import { ApiError } from "@/shared/api/client";
+import { cn, getErrorMessage } from "@/shared/lib";
 import {
   getCohorts,
   getCohortSemesters,
@@ -107,6 +106,7 @@ export function CohortListPage() {
       }
     } catch (err) {
       console.error("Failed to load data:", err);
+      toast.error(getErrorMessage(err, "Не удалось загрузить данные"));
     } finally {
       setLoading(false);
     }
@@ -143,21 +143,8 @@ export function CohortListPage() {
       }
     } catch (err) {
       console.error(`Failed to delete ${type}:`, err);
-      let errorMessage = `Не удалось удалить ${type === "cohort" ? "поток" : "семестр"}`;
-      
-      if (err instanceof ApiError) {
-        if (err.message && err.message !== `Request failed with status ${err.status}`) {
-          errorMessage = err.message;
-        } else if (err.status === 500) {
-          errorMessage = "Ошибка сервера. Возможно, поток связан с другими данными.";
-        } else if (err.status === 404) {
-          errorMessage = `${type === "cohort" ? "Поток" : "Семестр"} не найден.`;
-        }
-      } else if (err instanceof Error) {
-        errorMessage = err.message;
-      }
-      
-      toast.error(errorMessage);
+      const fallback = `Не удалось удалить ${type === "cohort" ? "поток" : "семестр"}`;
+      toast.error(getErrorMessage(err, fallback));
     }
   };
 

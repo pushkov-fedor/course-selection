@@ -12,7 +12,7 @@ import {
   Badge,
   Spinner,
 } from "@/shared/ui";
-import { cn } from "@/shared/lib";
+import { cn, getErrorMessage } from "@/shared/lib";
 import type { DisplayCourse } from "@/entities/course";
 import { formatTerm, pluralizeSeats } from "@/entities/course";
 import {
@@ -73,9 +73,7 @@ export function SwitchModal({
       setStep("success");
     } catch (err) {
       setStep("error");
-      setError(
-        err instanceof Error ? err.message : "Не удалось выполнить замену"
-      );
+      setError(getErrorMessage(err, "Не удалось выполнить замену"));
     }
   };
 

@@ -8,6 +8,7 @@ import { getCourse, updateCourse } from "../api";
 import type { Course } from "@/entities/course";
 import { Spinner } from "@/shared/ui";
 import { ArrowLeft } from "lucide-react";
+import { getErrorMessage } from "@/shared/lib";
 
 interface CourseEditPageProps {
   courseId: string;
@@ -28,7 +29,7 @@ export function CourseEditPage({ courseId }: CourseEditPageProps) {
       setCourse(data);
     } catch (err) {
       console.error("Failed to load course:", err);
-      setError("Не удалось загрузить курс");
+      setError(getErrorMessage(err, "Не удалось загрузить курс"));
     } finally {
       setLoading(false);
     }

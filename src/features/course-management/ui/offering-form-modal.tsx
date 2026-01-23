@@ -19,6 +19,7 @@ import {
   type UpdateCourseOfferingDTO,
 } from "../api/courses";
 import type { CourseOffering } from "@/entities/course";
+import { getErrorMessage } from "@/shared/lib";
 
 interface OfferingFormModalProps {
   isOpen: boolean;
@@ -114,7 +115,7 @@ export function OfferingFormModal({
       onSuccess();
     } catch (err) {
       console.error("Failed to save offering:", err);
-      setError("Не удалось сохранить запись");
+      setError(getErrorMessage(err, "Не удалось сохранить запись"));
     } finally {
       setLoading(false);
     }

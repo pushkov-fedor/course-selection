@@ -12,7 +12,7 @@ import {
   Badge,
   Spinner,
 } from "@/shared/ui";
-import { cn } from "@/shared/lib";
+import { cn, getErrorMessage } from "@/shared/lib";
 import type { DisplayCourse } from "@/entities/course";
 import { formatTerm, pluralizeCourses } from "@/entities/course";
 import { Check, X } from "lucide-react";
@@ -44,9 +44,7 @@ export function ConfirmModal({
       setStep("success");
     } catch (err) {
       setStep("error");
-      setError(
-        err instanceof Error ? err.message : "Произошла ошибка при отправке"
-      );
+      setError(getErrorMessage(err, "Произошла ошибка при отправке"));
     }
   };
 

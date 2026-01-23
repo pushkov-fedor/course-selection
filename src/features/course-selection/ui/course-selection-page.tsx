@@ -21,6 +21,8 @@ import { CourseGridSkeleton, SidebarSkeleton } from "./loading-skeleton";
 import { EmptyState } from "./empty-state";
 import { ErrorState } from "./error-state";
 import { Spinner } from "@/shared/ui";
+import { getErrorMessage } from "@/shared/lib";
+import { toast } from "sonner";
 
 // Test IDs from environment
 const STUDENT_ID =
@@ -74,7 +76,7 @@ export function CourseSelectionPage() {
       setCourses(displayCourses);
     } catch (err) {
       console.error("Failed to load courses:", err);
-      setError(err instanceof Error ? err.message : "Не удалось загрузить курсы");
+      setError(getErrorMessage(err, "Не удалось загрузить курсы"));
     } finally {
       setLoading(false);
     }
@@ -125,8 +127,14 @@ export function CourseSelectionPage() {
       type: "new" as const,
     };
 
-    await createEnrollmentRequest(payload);
-    setIsSubmitted(true);
+    try {
+      await createEnrollmentRequest(payload);
+      setIsSubmitted(true);
+      toast.success("Запись на курсы успешно отправлена!");
+    } catch (err) {
+      console.error("Failed to submit enrollment:", err);
+      toast.error(getErrorMessage(err, "Не удалось записаться на курсы"));
+    }
   }
 
   async function handleSwitchCourse(
@@ -146,8 +154,14 @@ export function CourseSelectionPage() {
       ],
     };
 
-    await createEnrollmentRequest(payload);
-    await checkExistingRequest();
+    try {
+      await createEnrollmentRequest(payload);
+      await checkExistingRequest();
+      toast.success("Курс успешно заменён!");
+    } catch (err) {
+      console.error("Failed to switch course:", err);
+      toast.error(getErrorMessage(err, "Не удалось заменить курс"));
+    }
   }
 
   // Computed

@@ -5,7 +5,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Course } from "@/entities/course";
 import { Button, Input } from "@/shared/ui";
-import { Info } from "lucide-react";
+import { Info, AlertCircle } from "lucide-react";
+import { getErrorMessage } from "@/shared/lib";
 
 interface CourseFormProps {
   course?: Course;
@@ -22,6 +23,7 @@ export interface CourseFormData {
 export function CourseForm({ course, onSubmit }: CourseFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const [code, setCode] = useState(course?.code || "");
   const [title, setTitle] = useState(course?.title || "");
@@ -37,6 +39,7 @@ export function CourseForm({ course, onSubmit }: CourseFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
 
     try {
       await onSubmit({
@@ -46,9 +49,9 @@ export function CourseForm({ course, onSubmit }: CourseFormProps) {
         is_active: isActive,
       });
       router.push("/admin");
-    } catch (error) {
-      console.error(error);
-      alert("Не удалось сохранить курс");
+    } catch (err) {
+      console.error(err);
+      setError(getErrorMessage(err, "Не удалось сохранить курс"));
     } finally {
       setIsSubmitting(false);
     }
@@ -58,6 +61,16 @@ export function CourseForm({ course, onSubmit }: CourseFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Error Message */}
+      {error && (
+        <div className="rounded-xl bg-destructive/10 border border-destructive/30 p-4">
+          <div className="flex gap-3">
+            <AlertCircle className="size-5 shrink-0 mt-0.5 text-destructive" />
+            <div className="text-sm text-destructive">{error}</div>
+          </div>
+        </div>
+      )}
+
       {/* Basic Info */}
       <div className="bg-card rounded-xl border p-6 space-y-4">
         <h2 className="font-semibold text-lg">Основная информация</h2>
