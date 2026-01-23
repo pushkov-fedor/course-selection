@@ -169,6 +169,24 @@ export function CourseSelectionPage() {
     return courses.filter((c) => selectedOfferingIds.includes(c.offeringId));
   }, [courses, selectedOfferingIds]);
 
+  // If submitted but no courses found (stale enrollment request after DB reset),
+  // reset the submitted state so user can re-enroll
+  useEffect(() => {
+    if (
+      isSubmitted &&
+      !loading &&
+      courses.length > 0 &&
+      selectedOfferingIds.length > 0 &&
+      selectedCourses.length === 0
+    ) {
+      // Enrollment request references offerings that no longer exist
+      console.warn("Enrollment request references stale offering IDs, resetting state");
+      setIsSubmitted(false);
+      setSelectedOfferingIds([]);
+      toast.error("Ваша предыдущая запись устарела. Пожалуйста, выберите курсы заново.");
+    }
+  }, [isSubmitted, loading, courses, selectedOfferingIds, selectedCourses]);
+
   const modalIsSelected = selectedCourseForModal
     ? selectedOfferingIds.includes(selectedCourseForModal.offeringId)
     : false;
