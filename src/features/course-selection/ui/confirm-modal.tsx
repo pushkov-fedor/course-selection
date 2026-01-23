@@ -58,7 +58,7 @@ export function ConfirmModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[480px]" showCloseButton={step === "review"}>
+      <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-[480px] max-h-[90vh] overflow-y-auto" showCloseButton={step === "review"}>
         {step === "review" && (
           <>
             <DialogHeader>
@@ -106,7 +106,7 @@ export function ConfirmModal({
               </div>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3">
               <Button variant="outline" onClick={handleClose} className="flex-1">
                 Назад
               </Button>

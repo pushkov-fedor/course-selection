@@ -44,7 +44,7 @@ export function CourseDetailModal({
 
   return (
     <Dialog open={!!course} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[480px]">
+      <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-[480px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           {course.code && (
             <Badge variant="outline" className="w-fit mb-2 font-mono text-xs">
@@ -56,7 +56,7 @@ export function CourseDetailModal({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-5">
+        <div className="space-y-4 sm:space-y-5">
           {/* Description */}
           {course.description && (
             <div className="rounded-lg bg-muted/50 p-4">
@@ -124,7 +124,7 @@ export function CourseDetailModal({
 
           {/* Actions */}
           {!isSubmitted && (
-            <div className="flex gap-3 pt-2">
+            <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 pt-2">
               <Button variant="outline" onClick={onClose} className="flex-1">
                 Закрыть
               </Button>

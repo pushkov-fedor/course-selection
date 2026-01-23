@@ -101,154 +101,159 @@ export function OfferingForm({ offering, isEdit = false }: OfferingFormProps) {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href="/admin/offerings">
-          <Button variant="ghost" size="sm">
-            <ArrowLeft className="size-4 mr-1" />
-            Назад
-          </Button>
-        </Link>
-        <h1 className="text-2xl font-bold">
-          {isEdit ? "Редактировать запись" : "Открыть запись на курс"}
-        </h1>
-      </div>
+    <main className="container mx-auto px-4 py-6">
+      <div className="max-w-2xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-6">
+          <Link href="/admin/offerings">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="size-4 mr-1" />
+              Назад
+            </Button>
+          </Link>
+          <h1 className="text-2xl font-bold">
+            {isEdit ? "Редактировать запись" : "Открыть запись на курс"}
+          </h1>
+        </div>
 
-      <Card className="p-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {error && (
-            <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
-              {error}
-            </div>
-          )}
-
-          {/* Course Selection */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Курс *</label>
-            {loadingCourses ? (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Loader2 className="size-4 animate-spin" />
-                Загрузка курсов...
+        {/* Form Card */}
+        <Card className="p-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {error && (
+              <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
+                {error}
               </div>
-            ) : (
-              <select
-                value={formData.course_id}
-                onChange={(e) =>
-                  setFormData({ ...formData, course_id: e.target.value })
-                }
-                disabled={isEdit}
-                required
-                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <option value="">Выберите курс</option>
-                {courses.map((course) => (
-                  <option key={course.id} value={course.id}>
-                    {course.title}
-                    {course.code && ` (${course.code})`}
-                  </option>
-                ))}
-              </select>
             )}
-            {isEdit && (
-              <p className="text-xs text-muted-foreground">
-                Курс нельзя изменить после создания
-              </p>
-            )}
-          </div>
 
-          {/* Year and Term */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Год *</label>
+            {/* Course Selection */}
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Курс *</label>
+              {loadingCourses ? (
+                <div className="flex items-center gap-2 text-muted-foreground text-sm py-2">
+                  <Loader2 className="size-4 animate-spin" />
+                  Загрузка курсов...
+                </div>
+              ) : (
+                <select
+                  value={formData.course_id}
+                  onChange={(e) =>
+                    setFormData({ ...formData, course_id: e.target.value })
+                  }
+                  disabled={isEdit}
+                  required
+                  className="w-full h-10 px-3 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  <option value="">Выберите курс</option>
+                  {courses.map((course) => (
+                    <option key={course.id} value={course.id}>
+                      {course.title}
+                      {course.code && ` (${course.code})`}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {isEdit && (
+                <p className="text-xs text-muted-foreground">
+                  Курс нельзя изменить после создания
+                </p>
+              )}
+            </div>
+
+            {/* Year and Term */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium">Год *</label>
+                <Input
+                  type="number"
+                  value={formData.year}
+                  onChange={(e) =>
+                    setFormData({ ...formData, year: e.target.value })
+                  }
+                  min={2020}
+                  max={2050}
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium">Семестр *</label>
+                <select
+                  value={formData.term}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      term: e.target.value as "spring" | "fall",
+                    })
+                  }
+                  required
+                  className="w-full h-10 px-3 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all"
+                >
+                  <option value="spring">Весна</option>
+                  <option value="fall">Осень</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Capacity */}
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Количество мест *</label>
               <Input
                 type="number"
-                value={formData.year}
+                value={formData.capacity}
                 onChange={(e) =>
-                  setFormData({ ...formData, year: e.target.value })
+                  setFormData({ ...formData, capacity: e.target.value })
                 }
-                min={2020}
-                max={2050}
+                min={1}
+                max={1000}
                 required
               />
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Семестр *</label>
-              <select
-                value={formData.term}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    term: e.target.value as "spring" | "fall",
-                  })
-                }
-                required
-                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-              >
-                <option value="spring">Весна</option>
-                <option value="fall">Осень</option>
-              </select>
-            </div>
-          </div>
 
-          {/* Capacity */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Количество мест *</label>
-            <Input
-              type="number"
-              value={formData.capacity}
-              onChange={(e) =>
-                setFormData({ ...formData, capacity: e.target.value })
-              }
-              min={1}
-              max={1000}
-              required
-            />
-          </div>
-
-          {/* Enrollment Period */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Начало записи *</label>
-              <Input
-                type="datetime-local"
-                value={formData.enrollment_open}
-                onChange={(e) =>
-                  setFormData({ ...formData, enrollment_open: e.target.value })
-                }
-                required
-              />
+            {/* Enrollment Period */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium">Начало записи *</label>
+                <Input
+                  type="datetime-local"
+                  value={formData.enrollment_open}
+                  onChange={(e) =>
+                    setFormData({ ...formData, enrollment_open: e.target.value })
+                  }
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium">Конец записи *</label>
+                <Input
+                  type="datetime-local"
+                  value={formData.enrollment_close}
+                  onChange={(e) =>
+                    setFormData({ ...formData, enrollment_close: e.target.value })
+                  }
+                  required
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Конец записи *</label>
-              <Input
-                type="datetime-local"
-                value={formData.enrollment_close}
-                onChange={(e) =>
-                  setFormData({ ...formData, enrollment_close: e.target.value })
-                }
-                required
-              />
-            </div>
-          </div>
 
-          <div className="flex justify-end gap-3 pt-4">
-            <Link href="/admin/offerings">
-              <Button type="button" variant="ghost">
-                Отмена
+            {/* Actions */}
+            <div className="flex justify-end gap-3 pt-4 border-t">
+              <Link href="/admin/offerings">
+                <Button type="button" variant="ghost">
+                  Отмена
+                </Button>
+              </Link>
+              <Button type="submit" disabled={loading}>
+                {loading ? (
+                  <Loader2 className="size-4 animate-spin mr-2" />
+                ) : (
+                  <Save className="size-4 mr-2" />
+                )}
+                {isEdit ? "Сохранить" : "Создать"}
               </Button>
-            </Link>
-            <Button type="submit" disabled={loading}>
-              {loading ? (
-                <Loader2 className="size-4 animate-spin mr-2" />
-              ) : (
-                <Save className="size-4 mr-2" />
-              )}
-              {isEdit ? "Сохранить" : "Создать"}
-            </Button>
-          </div>
-        </form>
-      </Card>
-    </div>
+            </div>
+          </form>
+        </Card>
+      </div>
+    </main>
   );
 }
 

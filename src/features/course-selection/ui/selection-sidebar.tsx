@@ -21,7 +21,7 @@ export function SelectionSidebar({
   onConfirm,
 }: SelectionSidebarProps) {
   return (
-    <aside className="w-80 shrink-0">
+    <aside className="w-72 xl:w-80 shrink-0">
       <div className="sticky top-24 bg-card rounded-xl border shadow-sm overflow-hidden">
         {/* Header */}
         <div className="p-4 border-b bg-muted/30">

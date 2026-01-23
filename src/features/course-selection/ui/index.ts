@@ -10,4 +10,5 @@ export { CourseGridSkeleton, SidebarSkeleton } from "./loading-skeleton";
 export { EmptyState } from "./empty-state";
 export { ErrorState } from "./error-state";
 export { CourseSelectionPage } from "./course-selection-page";
+export { MobileSelectionBar } from "./mobile-selection-bar";
 

@@ -15,6 +15,7 @@ import { CourseDetailModal } from "./course-detail-modal";
 import { ConfirmModal } from "./confirm-modal";
 import { SwitchModal } from "./switch-modal";
 import { SelectionSidebar } from "./selection-sidebar";
+import { MobileSelectionBar } from "./mobile-selection-bar";
 import { EnrolledCourses } from "./enrolled-courses";
 import { CourseGridSkeleton, SidebarSkeleton } from "./loading-skeleton";
 import { EmptyState } from "./empty-state";
@@ -158,15 +159,17 @@ export function CourseSelectionPage() {
     ? selectedOfferingIds.includes(selectedCourseForModal.offeringId)
     : false;
 
+  const showSelectionUI = !isSubmitted && !loading && courses.length > 0;
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b">
-        <div className="container mx-auto px-4 py-4">
+      <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b">
+        <div className="container mx-auto px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-semibold">Запись на курсы</h1>
-              <p className="text-sm text-muted-foreground">
+              <h1 className="text-lg sm:text-xl font-semibold">Запись на курсы</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Выберите курсы для записи
               </p>
             </div>
@@ -174,19 +177,19 @@ export function CourseSelectionPage() {
             {loading && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Spinner size="sm" />
-                <span>Загрузка...</span>
+                <span className="hidden sm:inline">Загрузка...</span>
               </div>
             )}
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-4 sm:py-6">
         {error && <ErrorState message={error} onRetry={loadCourses} />}
 
         <div className="flex gap-6">
           {/* Main content */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 pb-24 lg:pb-0">
             {loading ? (
               <CourseGridSkeleton />
             ) : courses.length === 0 ? (
@@ -210,17 +213,29 @@ export function CourseSelectionPage() {
             )}
           </div>
 
-          {/* Sidebar - only show before submission */}
-          {!isSubmitted && !loading && courses.length > 0 && (
-            <SelectionSidebar
-              selectedCourses={selectedCourses}
-              onRemove={handleToggleSelection}
-              onOpenCourse={setSelectedCourseForModal}
-              onConfirm={() => setIsConfirmModalOpen(true)}
-            />
+          {/* Desktop Sidebar */}
+          {showSelectionUI && (
+            <div className="hidden lg:block">
+              <SelectionSidebar
+                selectedCourses={selectedCourses}
+                onRemove={handleToggleSelection}
+                onOpenCourse={setSelectedCourseForModal}
+                onConfirm={() => setIsConfirmModalOpen(true)}
+              />
+            </div>
           )}
         </div>
       </div>
+
+      {/* Mobile Selection Bar */}
+      {showSelectionUI && (
+        <MobileSelectionBar
+          selectedCourses={selectedCourses}
+          onRemove={handleToggleSelection}
+          onOpenCourse={setSelectedCourseForModal}
+          onConfirm={() => setIsConfirmModalOpen(true)}
+        />
+      )}
 
       {/* Modals */}
       <CourseDetailModal
@@ -256,4 +271,3 @@ export function CourseSelectionPage() {
     </div>
   );
 }
-
